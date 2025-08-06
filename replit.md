@@ -1,0 +1,80 @@
+# Overview
+
+DentalCare is a full-stack dental clinic management system built with modern web technologies. The application provides comprehensive patient management, appointment scheduling, file storage, and medical record keeping capabilities for dental practices. It features a React-based frontend with TypeScript for type safety, an Express.js backend with in-memory storage, and a PostgreSQL database using Drizzle ORM for data persistence.
+
+# User Preferences
+
+Preferred communication style: Simple, everyday language.
+
+# System Architecture
+
+## Frontend Architecture
+
+The frontend is built as a Single Page Application (SPA) using React 18 with TypeScript for enhanced type safety and developer experience. The application uses Vite as the build tool for fast development and optimized production builds.
+
+**State Management**: The application employs a hybrid approach using React Query (TanStack Query) for server state management combined with React's built-in useState for local UI state. This separation ensures efficient data fetching, caching, and synchronization with the backend while keeping local state management simple.
+
+**UI Framework**: The project uses shadcn/ui components built on top of Radix UI primitives, providing accessible and customizable components. Tailwind CSS handles styling with a custom medical theme incorporating dental-specific color schemes and design patterns.
+
+**Routing**: Wouter is used for client-side routing, providing a lightweight alternative to React Router with similar functionality.
+
+**Component Structure**: Components are organized into feature-based folders (patients, appointments, files) with shared UI components in a common directory. This promotes code reusability and maintainable architecture.
+
+## Backend Architecture
+
+The backend follows a simplified REST API design using Express.js with TypeScript. Currently implements an in-memory storage pattern but is architected to easily transition to database persistence.
+
+**API Design**: RESTful endpoints follow standard HTTP conventions with consistent response formats. The API includes routes for patients, appointments, files, and dashboard statistics.
+
+**Data Validation**: Zod schemas provide runtime type validation and are shared between frontend and backend through the shared directory, ensuring type consistency across the application.
+
+**Error Handling**: Centralized error handling middleware captures and formats errors consistently across all endpoints.
+
+**File Handling**: The system includes file upload capabilities for patient documents and medical images, with proper file type validation and storage management.
+
+## Data Storage Strategy
+
+**Database**: PostgreSQL is configured as the primary database with Drizzle ORM providing type-safe database operations and migrations.
+
+**Schema Design**: The database schema includes core entities for patients, appointments, medical conditions, and patient files with proper relationships and constraints. Audit fields track creation and modification timestamps.
+
+**Current Implementation**: The application currently uses in-memory storage for development, with the storage interface designed to seamlessly transition to database operations.
+
+## Authentication and Authorization
+
+The current implementation includes session-based authentication infrastructure with placeholder for future authentication implementation. The system is prepared for role-based access control for different user types (doctors, staff, administrators).
+
+# External Dependencies
+
+## UI and Design System
+- **shadcn/ui**: Component library built on Radix UI primitives
+- **Radix UI**: Accessible, unstyled UI components
+- **Tailwind CSS**: Utility-first CSS framework for styling
+- **Lucide React**: Icon library for consistent iconography
+
+## State Management and Data Fetching
+- **TanStack React Query**: Server state management and caching
+- **React Hook Form**: Form state management and validation
+- **Zod**: Runtime schema validation
+
+## Database and ORM
+- **Drizzle ORM**: Type-safe ORM for PostgreSQL
+- **Neon Database**: Serverless PostgreSQL database service
+- **PostgreSQL**: Primary database system
+
+## Development and Build Tools
+- **Vite**: Frontend build tool and development server
+- **TypeScript**: Type-safe JavaScript development
+- **ESBuild**: Fast JavaScript bundler for production builds
+
+## File Upload and Handling
+- **React Dropzone**: Drag-and-drop file upload interface
+
+## Date and Time Management
+- **date-fns**: Modern JavaScript date utility library
+
+## Navigation and Routing
+- **Wouter**: Lightweight client-side routing
+
+## Session Management
+- **connect-pg-simple**: PostgreSQL session store for Express sessions
