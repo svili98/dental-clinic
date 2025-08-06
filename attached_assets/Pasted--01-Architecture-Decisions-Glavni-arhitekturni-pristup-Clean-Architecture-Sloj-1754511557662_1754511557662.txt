@@ -1,0 +1,215 @@
+# 01 - Architecture Decisions
+
+## 🏗️ Glavni arhitekturni pristup
+
+### Clean Architecture - Slojevi
+```
+┌─────────────────────────────────────┐
+│           Presentation              │ ← Controllers, DTOs, Middleware
+├─────────────────────────────────────┤
+│           Application               │ ← Use Cases, Services, Interfaces
+├─────────────────────────────────────┤
+│           Domain                    │ ← Entities, Value Objects, Business Rules
+├─────────────────────────────────────┤
+│           Infrastructure            │ ← EF Core, Repositories, External Services
+└─────────────────────────────────────┘
+```
+
+**Razlog**: Čista separacija odgovornosti, lakše testiranje, nezavisnost od spoljašnjih biblioteka.
+
+## 🎯 Tehnološki stek - Finalne odluke
+
+### Backend
+| Komponenta | Tehnologija | Razlog |
+|------------|-------------|---------|
+| **Framework** | ASP.NET Core 8.0 | Stabilan, performantan, dobra dokumentacija |
+| **ORM** | Entity Framework Core | Code-first pristup, migracije, LINQ |
+| **Baza** | PostgreSQL | Open source, skalabilnost, JSON podrška |
+| **Validation** | FluentValidation | Čitljivost, separation of concerns |
+| **Mapping** | AutoMapper | Automatsko mapiranje između slojeva |
+| **API Doc** | Swagger/OpenAPI | Automatska dokumentacija |
+| **Logging** | Serilog | Strukturisano logovanje |
+
+### Frontend
+| Komponenta | Tehnologija | Razlog |
+|------------|-------------|---------|
+| **Framework** | React 18 + TypeScript | Type safety, komponente, ecosystem |
+| **Build Tool** | Vite | Brzina, hot reload, jednostavnost |
+| **HTTP Client** | Axios | Interceptori, error handling |
+| **State Management** | React Query + useState | Server state odvojeno od UI state |
+| **UI Library** | **TBD** | Ant Design vs Material-UI vs custom |
+| **Forms** | React Hook Form | Performanse, validacija |
+| **Routing** | React Router | Standard za React SPA |
+
+### Infrastructure
+| Komponenta | Tehnologija | Razlog |
+|------------|-------------|---------|
+| **Containerization** | Docker + Docker Compose | Consistency, easy deployment |
+| **Reverse Proxy** | Nginx | CORS, static files, load balancing |
+| **Database** | PostgreSQL 15+ | Stabilnost, features |
+
+## 🔍 Alternativni pristupi (razmotreni i odbačeni)
+
+### ❌ Odbačeno: Mikroservisi
+- **Razlog**: Overkill za domain ovve veličine
+- **Preporučeno**: Modularni monolit sa jasnim boundary-jima
+
+### ❌ Odbačeno: NoSQL baza
+- **Razlog**: Relacijski podaci, potreba za konzistentnost
+- **Preporučeno**: PostgreSQL sa JSON poljima gde je potrebno
+
+### ❌ Odbačeno: GraphQL
+- **Razlog**: Složenost, overkill za CRUD operacije
+- **Preporučeno**: RESTful API sa dobrim caching-om
+
+### ❌ Odbačeno: Next.js
+- **Razlog**: Nepotreban SSR, duplikovanje backend logike
+- **Preporučeno**: Čisti React SPA
+
+## 🏛️ Sloj detaljnije
+
+### Domain Layer
+```
+Domain/
+├── Entities/
+│   ├── Patient.cs
+│   ├── Appointment.cs
+│   └── MedicalCondition.cs
+├── ValueObjects/
+│   ├── Address.cs
+│   └── PhoneNumber.cs
+├── Enums/
+│   ├── Gender.cs
+│   └── AppointmentStatus.cs
+└── Interfaces/
+    └── IRepository.cs
+```
+
+### Application Layer
+```
+Application/
+├── UseCases/
+│   ├── Patients/
+│   │   ├── CreatePatient/
+│   │   ├── GetPatient/
+│   │   └── UpdatePatient/
+│   └── Appointments/
+├── DTOs/
+├── Interfaces/
+├── Validators/
+└── Mappings/
+```
+
+### Infrastructure Layer
+```
+Infrastructure/
+├── Data/
+│   ├── ApplicationDbContext.cs
+│   ├── Repositories/
+│   └── Migrations/
+├── Services/
+└── Configuration/
+```
+
+### Presentation Layer
+```
+Presentation/
+├── Controllers/
+├── DTOs/
+├── Middleware/
+├── Filters/
+└── Extensions/
+```
+
+## 🔧 Dependency Injection Strategy
+
+### Registracija servisa
+```csharp
+// Program.cs
+builder.Services.AddScoped<IPatientRepository, PatientRepository>();
+builder.Services.AddScoped<IPatientService, PatientService>();
+builder.Services.AddAutoMapper(typeof(MappingProfile));
+builder.Services.AddValidatorsFromAssembly(typeof(CreatePatientValidator).Assembly);
+```
+
+## 📊 Database Access Pattern
+
+### Repository Pattern
+- **Pro**: Testabilnost, abstraction over EF Core
+- **Con**: Dodatna kompleksnost
+
+### Direct EF Core u Application layer
+- **Pro**: Jednostavnost, direktan LINQ
+- **Con**: Vezanost za EF Core
+
+**Odluka**: **Repository Pattern** zbog testabilnosti i buduće fleksibilnosti.
+
+## 🎨 Frontend Architecture
+
+### Folder struktura
+```
+src/
+├── components/
+│   ├── common/
+│   └── pages/
+├── hooks/
+├── services/
+├── types/
+├── utils/
+└── pages/
+```
+
+### State Management Philosophy
+- **Server State**: React Query (appointments, patients)
+- **UI State**: useState, useReducer
+- **Global State**: Context API (user, theme)
+
+## 🔐 Security Considerations
+
+### Authentication (budućnost)
+- **Izbor**: ASP.NET Core Identity
+- **Razlog**: Integrisano, jednostavno, dovoljno za potrebe
+
+### Authorization
+- **Role-based**: Doctor, Nurse, Admin
+- **Resource-based**: Patient može videti samo svoje podatke
+
+### Data Protection
+- **HTTPS**: Obavezno u production
+- **CORS**: Konfigurisano za frontend domain
+- **Validation**: Na svim nivoima (client, server, database)
+
+## 🚀 Performance Strategy
+
+### Database
+- **Connection Pooling**: Ugrađeno u Npgsql
+- **Indexing**: Composite indeksi za česte upite
+- **Query Optimization**: IQueryable, async/await
+
+### API
+- **Caching**: In-memory cache za reference data
+- **Pagination**: Svi list endpoint-i
+- **Compression**: Gzip za API responses
+
+### Frontend
+- **Code Splitting**: Lazy loading stranica
+- **Bundle Optimization**: Vite optimizacija
+- **HTTP Caching**: Cache-Control headers
+
+## 📝 Sledeći koraci
+
+1. ✅ Arhitektura definisana
+2. ⏭️ Database design review
+3. ⏭️ Backend structure planning
+4. ⏭️ Frontend structure planning
+5. ⏭️ Docker setup planning
+
+## 🤔 Otvorena pitanja za diskusiju
+
+1. **UI Library**: Ant Design vs Material-UI vs custom CSS?
+2. **Caching**: Redis ili in-memory za početak?
+3. **File Upload**: Gdje store slike/dokumenti?
+4. **Notification**: Email/SMS provider?
+5. **Reporting**: Built-in ili third-party?
+
+Da li se slažeš sa ovim odlukama ili imaš predloge za izmene?

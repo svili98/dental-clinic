@@ -1,0 +1,618 @@
+# 03 - Backend Structure
+
+## 🏗️ Clean Architecture Folder Structure
+
+```
+DentalClinic.Backend/
+├── src/
+│   ├── DentalClinic.Domain/
+│   │   ├── Entities/
+│   │   │   ├── Patient.cs
+│   │   │   ├── Appointment.cs
+│   │   │   ├── Employee.cs
+│   │   │   ├── MedicalCondition.cs
+│   │   │   ├── PatientFile.cs
+│   │   │   └── SystemSetting.cs
+│   │   ├── ValueObjects/
+│   │   │   ├── Address.cs
+│   │   │   └── PhoneNumber.cs
+│   │   ├── Enums/
+│   │   │   ├── Gender.cs
+│   │   │   ├── AppointmentStatus.cs
+│   │   │   ├── PatientStatus.cs
+│   │   │   └── FileFormat.cs
+│   │   ├── Interfaces/
+│   │   │   ├── IRepository.cs
+│   │   │   ├── IPatientRepository.cs
+│   │   │   ├── IAppointmentRepository.cs
+│   │   │   └── IFileStorageService.cs
+│   │   └── Common/
+│   │       ├── BaseEntity.cs
+│   │       └── IAuditableEntity.cs
+│   │
+│   ├── DentalClinic.Application/
+│   │   ├── Features/
+│   │   │   ├── Patients/
+│   │   │   │   ├── Commands/
+│   │   │   │   │   ├── CreatePatient/
+│   │   │   │   │   │   ├── CreatePatientCommand.cs
+│   │   │   │   │   │   ├── CreatePatientCommandHandler.cs
+│   │   │   │   │   │   └── CreatePatientValidator.cs
+│   │   │   │   │   ├── UpdatePatient/
+│   │   │   │   │   └── DeletePatient/
+│   │   │   │   └── Queries/
+│   │   │   │       ├── GetPatient/
+│   │   │   │       ├── GetPatientsList/
+│   │   │   │       └── SearchPatients/
+│   │   │   ├── Appointments/
+│   │   │   │   ├── Commands/
+│   │   │   │   └── Queries/
+│   │   │   ├── Files/
+│   │   │   │   ├── Commands/
+│   │   │   │   │   ├── UploadFile/
+│   │   │   │   │   └── DeleteFile/
+│   │   │   │   └── Queries/
+│   │   │   │       └── GetPatientFiles/
+│   │   │   └── MedicalConditions/
+│   │   ├── DTOs/
+│   │   │   ├── PatientDto.cs
+│   │   │   ├── AppointmentDto.cs
+│   │   │   └── FileUploadDto.cs
+│   │   ├── Services/
+│   │   │   ├── FileStorageService.cs
+│   │   │   ├── ImageProcessingService.cs
+│   │   │   └── AuditService.cs
+│   │   ├── Interfaces/
+│   │   │   └── IApplicationDbContext.cs
+│   │   └── Common/
+│   │       ├── PaginatedList.cs
+│   │       └── Result.cs
+│   │
+│   ├── DentalClinic.Infrastructure/
+│   │   ├── Data/
+│   │   │   ├── ApplicationDbContext.cs
+│   │   │   ├── Configurations/
+│   │   │   │   ├── PatientConfiguration.cs
+│   │   │   │   ├── AppointmentConfiguration.cs
+│   │   │   │   └── PatientFileConfiguration.cs
+│   │   │   ├── Repositories/
+│   │   │   │   ├── PatientRepository.cs
+│   │   │   │   ├── AppointmentRepository.cs
+│   │   │   │   └── GenericRepository.cs
+│   │   │   ├── Migrations/
+│   │   │   └── Seeds/
+│   │   │       └── DefaultDataSeeder.cs
+│   │   ├── Services/
+│   │   │   ├── FileStorageService.cs
+│   │   │   ├── ImageProcessingService.cs
+│   │   │   └── BackupService.cs
+│   │   └── Extensions/
+│   │       └── ServiceCollectionExtensions.cs
+│   │
+│   └── DentalClinic.API/
+│       ├── Controllers/
+│       │   ├── PatientsController.cs
+│       │   ├── AppointmentsController.cs
+│       │   ├── FilesController.cs
+│       │   └── SystemController.cs
+│       ├── DTOs/
+│       │   ├── Requests/
+│       │   └── Responses/
+│       ├── Middleware/
+│       │   ├── ExceptionHandlingMiddleware.cs
+│       │   ├── RequestLoggingMiddleware.cs
+│       │   └── FileUploadMiddleware.cs
+│       ├── Extensions/
+│       │   └── WebApplicationExtensions.cs
+│       ├── Program.cs
+│       ├── appsettings.json
+│       └── appsettings.Development.json
+├── tests/
+│   ├── DentalClinic.UnitTests/
+│   ├── DentalClinic.IntegrationTests/
+│   └── DentalClinic.ApiTests/
+├── docker/
+│   ├── Dockerfile
+│   └── docker-compose.yml
+└── README.md
+```
+
+## 🎯 Entity Framework Core Configuration
+
+### DbContext setup
+```csharp
+public class ApplicationDbContext : DbContext, IApplicationDbContext
+{
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+        : base(options) { }
+
+    public DbSet<Patient> Patients { get; set; }
+    public DbSet<Appointment> Appointments { get; set; }
+    public DbSet<Employee> Employees { get; set; }
+    public DbSet<MedicalCondition> MedicalConditions { get; set; }
+    public DbSet<PatientMedicalCondition> PatientMedicalConditions { get; set; }
+    public DbSet<PatientFile> PatientFiles { get; set; }
+    public DbSet<SystemSetting> SystemSettings { get; set; }
+    public DbSet<AuditLog> AuditLogs { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+        base.OnModelCreating(modelBuilder);
+    }
+
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        // Audit trail logic
+        var auditEntries = OnBeforeSaveChanges();
+        var result = await base.SaveChangesAsync(cancellationToken);
+        await OnAfterSaveChanges(auditEntries);
+        return result;
+    }
+}
+```
+
+### Entity Configurations
+```csharp
+public class PatientConfiguration : IEntityTypeConfiguration<Patient>
+{
+    public void Configure(EntityTypeBuilder<Patient> builder)
+    {
+        builder.ToTable("patients");
+        
+        builder.HasKey(p => p.Id);
+        
+        builder.Property(p => p.FirstName)
+            .IsRequired()
+            .HasMaxLength(100);
+            
+        builder.Property(p => p.Email)
+            .HasMaxLength(255);
+            
+        builder.HasIndex(p => p.Email)
+            .IsUnique()
+            .HasFilter("email IS NOT NULL");
+            
+        builder.HasIndex(p => p.Jmbg)
+            .IsUnique();
+            
+        // Soft delete filter
+        builder.HasQueryFilter(p => p.DeletedAt == null);
+    }
+}
+```
+
+## 🔧 Dependency Injection Setup
+
+### Program.cs
+```csharp
+var builder = WebApplication.CreateBuilder(args);
+
+// Database
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Repositories
+builder.Services.AddScoped<IPatientRepository, PatientRepository>();
+builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
+
+// Services
+builder.Services.AddScoped<IFileStorageService, FileStorageService>();
+builder.Services.AddScoped<IImageProcessingService, ImageProcessingService>();
+
+// FluentValidation
+builder.Services.AddValidatorsFromAssembly(typeof(CreatePatientValidator).Assembly);
+
+// MediatR (za CQRS)
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(CreatePatientCommand).Assembly));
+
+// API Configuration
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+// CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173") // Vite dev server
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials();
+    });
+});
+
+var app = builder.Build();
+
+// Middleware pipeline
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+app.UseCors("AllowFrontend");
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+app.UseMiddleware<RequestLoggingMiddleware>();
+
+app.MapControllers();
+
+app.Run();
+```
+
+## 📊 Repository Pattern Implementation
+
+### Generic Repository
+```csharp
+public class GenericRepository<T> : IRepository<T> where T : BaseEntity
+{
+    protected readonly ApplicationDbContext _context;
+    protected readonly DbSet<T> _dbSet;
+
+    public GenericRepository(ApplicationDbContext context)
+    {
+        _context = context;
+        _dbSet = context.Set<T>();
+    }
+
+    public async Task<T?> GetByIdAsync(int id)
+        => await _dbSet.FindAsync(id);
+
+    public async Task<IEnumerable<T>> GetAllAsync()
+        => await _dbSet.ToListAsync();
+
+    public async Task<T> AddAsync(T entity)
+    {
+        await _dbSet.AddAsync(entity);
+        await _context.SaveChangesAsync();
+        return entity;
+    }
+
+    public async Task UpdateAsync(T entity)
+    {
+        _dbSet.Update(entity);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task DeleteAsync(int id)
+    {
+        var entity = await GetByIdAsync(id);
+        if (entity != null)
+        {
+            if (entity is IAuditableEntity auditable)
+            {
+                auditable.DeletedAt = DateTime.UtcNow; // Soft delete
+                await UpdateAsync(entity);
+            }
+            else
+            {
+                _dbSet.Remove(entity);
+                await _context.SaveChangesAsync();
+            }
+        }
+    }
+}
+```
+
+### Specialized Repository
+```csharp
+public class PatientRepository : GenericRepository<Patient>, IPatientRepository
+{
+    public PatientRepository(ApplicationDbContext context) : base(context) { }
+
+    public async Task<Patient?> GetByJmbgAsync(string jmbg)
+        => await _dbSet.FirstOrDefaultAsync(p => p.Jmbg == jmbg);
+
+    public async Task<PaginatedList<Patient>> SearchPatientsAsync(
+        string searchTerm, int pageNumber, int pageSize)
+    {
+        var query = _dbSet.AsQueryable();
+
+        if (!string.IsNullOrEmpty(searchTerm))
+        {
+            query = query.Where(p => 
+                p.FirstName.Contains(searchTerm) ||
+                p.LastName.Contains(searchTerm) ||
+                p.Phone.Contains(searchTerm) ||
+                p.Email.Contains(searchTerm));
+        }
+
+        var totalCount = await query.CountAsync();
+        var items = await query
+            .OrderBy(p => p.LastName)
+            .ThenBy(p => p.FirstName)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return new PaginatedList<Patient>(items, totalCount, pageNumber, pageSize);
+    }
+}
+```
+
+## 🎨 CQRS with MediatR
+
+### Command Example
+```csharp
+public record CreatePatientCommand : IRequest<Result<int>>
+{
+    public string FirstName { get; init; } = string.Empty;
+    public string LastName { get; init; } = string.Empty;
+    public string Phone { get; init; } = string.Empty;
+    public string? Email { get; init; }
+    public DateTime DateOfBirth { get; init; }
+    public string? Address { get; init; }
+    public Gender Gender { get; init; }
+    public string Jmbg { get; init; } = string.Empty;
+}
+
+public class CreatePatientCommandHandler : IRequestHandler<CreatePatientCommand, Result<int>>
+{
+    private readonly IPatientRepository _patientRepository;
+    private readonly IValidator<CreatePatientCommand> _validator;
+
+    public CreatePatientCommandHandler(
+        IPatientRepository patientRepository,
+        IValidator<CreatePatientCommand> validator)
+    {
+        _patientRepository = patientRepository;
+        _validator = validator;
+    }
+
+    public async Task<Result<int>> Handle(CreatePatientCommand request, CancellationToken cancellationToken)
+    {
+        var validationResult = await _validator.ValidateAsync(request, cancellationToken);
+        if (!validationResult.IsValid)
+            return Result<int>.Failure(validationResult.Errors.Select(e => e.ErrorMessage));
+
+        var patient = new Patient
+        {
+            FirstName = request.FirstName,
+            LastName = request.LastName,
+            Phone = request.Phone,
+            Email = request.Email,
+            DateOfBirth = request.DateOfBirth,
+            Address = request.Address,
+            Gender = request.Gender,
+            Jmbg = request.Jmbg,
+            StatusId = 1 // Active
+        };
+
+        var createdPatient = await _patientRepository.AddAsync(patient);
+        return Result<int>.Success(createdPatient.Id);
+    }
+}
+```
+
+### Query Example
+```csharp
+public record GetPatientQuery(int Id) : IRequest<Result<PatientDto>>;
+
+public class GetPatientQueryHandler : IRequestHandler<GetPatientQuery, Result<PatientDto>>
+{
+    private readonly IPatientRepository _patientRepository;
+
+    public GetPatientQueryHandler(IPatientRepository patientRepository)
+    {
+        _patientRepository = patientRepository;
+    }
+
+    public async Task<Result<PatientDto>> Handle(GetPatientQuery request, CancellationToken cancellationToken)
+    {
+        var patient = await _patientRepository.GetByIdAsync(request.Id);
+        
+        if (patient == null)
+            return Result<PatientDto>.Failure("Patient not found");
+
+        var patientDto = new PatientDto
+        {
+            Id = patient.Id,
+            FirstName = patient.FirstName,
+            LastName = patient.LastName,
+            Phone = patient.Phone,
+            Email = patient.Email,
+            // ... mapping
+        };
+
+        return Result<PatientDto>.Success(patientDto);
+    }
+}
+```
+
+## 🎯 Controller Implementation
+
+### Patients Controller
+```csharp
+[ApiController]
+[Route("api/[controller]")]
+public class PatientsController : ControllerBase
+{
+    private readonly IMediator _mediator;
+
+    public PatientsController(IMediator mediator)
+    {
+        _mediator = mediator;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetPatients(
+        [FromQuery] string? search,
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10)
+    {
+        var query = new GetPatientsQuery(search, pageNumber, pageSize);
+        var result = await _mediator.Send(query);
+        
+        return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Errors);
+    }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetPatient(int id)
+    {
+        var query = new GetPatientQuery(id);
+        var result = await _mediator.Send(query);
+        
+        return result.IsSuccess ? Ok(result.Value) : NotFound();
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> CreatePatient([FromBody] CreatePatientCommand command)
+    {
+        var result = await _mediator.Send(command);
+        
+        return result.IsSuccess 
+            ? CreatedAtAction(nameof(GetPatient), new { id = result.Value }, result.Value)
+            : BadRequest(result.Errors);
+    }
+}
+```
+
+## 📂 File Storage Service
+
+### File Storage Implementation
+```csharp
+public class FileStorageService : IFileStorageService
+{
+    private readonly string _uploadsPath;
+    private readonly IImageProcessingService _imageProcessing;
+
+    public FileStorageService(IConfiguration configuration, IImageProcessingService imageProcessing)
+    {
+        _uploadsPath = configuration["FileStorage:UploadsPath"] ?? "/app/uploads";
+        _imageProcessing = imageProcessing;
+    }
+
+    public async Task<FileUploadResult> UploadFileAsync(
+        int patientId, 
+        IFormFile file, 
+        FileFormat fileFormat,
+        CancellationToken cancellationToken = default)
+    {
+        var patientDir = Path.Combine(_uploadsPath, "patients", patientId.ToString());
+        var typeDir = GetDirectoryForFileFormat(fileFormat);
+        var targetDir = Path.Combine(patientDir, typeDir, "original");
+        
+        Directory.CreateDirectory(targetDir);
+
+        var fileName = $"{Guid.NewGuid()}_{file.FileName}";
+        var filePath = Path.Combine(targetDir, fileName);
+
+        await using var fileStream = new FileStream(filePath, FileMode.Create);
+        await file.CopyToAsync(fileStream, cancellationToken);
+
+        var result = new FileUploadResult
+        {
+            FilePath = filePath,
+            FileName = fileName,
+            FileSize = file.Length,
+            MimeType = file.ContentType
+        };
+
+        // Generate thumbnails and compressed versions for images
+        if (fileFormat == FileFormat.ImageStandard)
+        {
+            result.ThumbnailPath = await _imageProcessing.CreateThumbnailAsync(filePath, 150, 150);
+            result.CompressedPath = await _imageProcessing.CompressImageAsync(filePath, 90);
+        }
+
+        return result;
+    }
+}
+```
+
+## 🔍 Validation with FluentValidation
+
+```csharp
+public class CreatePatientValidator : AbstractValidator<CreatePatientCommand>
+{
+    public CreatePatientValidator()
+    {
+        RuleFor(x => x.FirstName)
+            .NotEmpty().WithMessage("First name is required")
+            .MaximumLength(100).WithMessage("First name cannot exceed 100 characters");
+
+        RuleFor(x => x.LastName)
+            .NotEmpty().WithMessage("Last name is required")
+            .MaximumLength(100).WithMessage("Last name cannot exceed 100 characters");
+
+        RuleFor(x => x.Phone)
+            .NotEmpty().WithMessage("Phone is required")
+            .Matches(@"^[0-9+\-\s()]+$").WithMessage("Invalid phone format");
+
+        RuleFor(x => x.Email)
+            .EmailAddress().WithMessage("Invalid email format")
+            .When(x => !string.IsNullOrEmpty(x.Email));
+
+        RuleFor(x => x.Jmbg)
+            .NotEmpty().WithMessage("JMBG is required")
+            .Length(13).WithMessage("JMBG must be 13 characters")
+            .Matches(@"^\d{13}$").WithMessage("JMBG must contain only digits");
+
+        RuleFor(x => x.DateOfBirth)
+            .LessThan(DateTime.Today).WithMessage("Date of birth must be in the past");
+    }
+}
+```
+
+## 🛡️ Exception Handling Middleware
+
+```csharp
+public class ExceptionHandlingMiddleware
+{
+    private readonly RequestDelegate _next;
+    private readonly ILogger<ExceptionHandlingMiddleware> _logger;
+
+    public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
+    {
+        _next = next;
+        _logger = logger;
+    }
+
+    public async Task InvokeAsync(HttpContext context)
+    {
+        try
+        {
+            await _next(context);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An unhandled exception occurred");
+            await HandleExceptionAsync(context, ex);
+        }
+    }
+
+    private static async Task HandleExceptionAsync(HttpContext context, Exception exception)
+    {
+        context.Response.ContentType = "application/json";
+        
+        var response = new
+        {
+            error = new
+            {
+                message = exception.Message,
+                type = exception.GetType().Name
+            }
+        };
+
+        context.Response.StatusCode = exception switch
+        {
+            ValidationException => StatusCodes.Status400BadRequest,
+            KeyNotFoundException => StatusCodes.Status404NotFound,
+            UnauthorizedAccessException => StatusCodes.Status401Unauthorized,
+            _ => StatusCodes.Status500InternalServerError
+        };
+
+        await context.Response.WriteAsync(JsonSerializer.Serialize(response));
+    }
+}
+```
+
+## 📝 Sledeći koraci
+
+1. ✅ Backend struktura definisana
+2. ⏭️ Frontend struktura planning
+3. ⏭️ Docker konfiguracija
+4. ⏭️ Implementation roadmap
+
+Da li se slažeš sa ovom backend strukturom ili imaš predloge za izmene?

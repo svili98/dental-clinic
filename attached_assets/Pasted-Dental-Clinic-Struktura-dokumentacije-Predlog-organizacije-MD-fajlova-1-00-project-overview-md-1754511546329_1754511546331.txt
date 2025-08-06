@@ -1,0 +1,100 @@
+Dental Clinic - Struktura dokumentacije
+📋 Predlog organizacije MD fajlova
+1. 00-project-overview.md
+
+Opis projekta i ciljevi
+Osnovne funkcionalnosti
+Tehnički zahtevi
+Timeline i prioriteti
+
+2. 01-architecture-decisions.md
+
+Arhitekturni uzorci (Clean Architecture)
+Tehnološki stek (ASP.NET Core, PostgreSQL, React)
+Razlozi za izbor tehnologija
+Alternativni pristupi
+
+3. 02-database-design.md
+
+Analiza postojećeg ER dijagrama
+Predlozi poboljšanja baze
+Indexing strategija
+Migracije i seeding
+
+4. 03-backend-structure.md
+
+Clean Architecture slojevi
+Folder struktura
+Dependency injection
+API design (RESTful konvencije)
+
+5. 04-frontend-structure.md
+
+React vs vanilla JS/CSS odluka
+Folder struktura
+State management
+UI biblioteke
+
+6. 05-docker-infrastructure.md
+
+Docker Compose konfiguracija
+Environment varijable
+Networking između servisa
+Development vs production setup
+
+7. 06-development-workflow.md
+
+Git workflow
+Code review proces
+Testing strategija
+Deployment pipeline
+
+8. 07-security-considerations.md
+
+Autentifikacija/autorizacija
+Data validation
+CORS i security headers
+Logging i monitoring
+
+9. 08-performance-optimization.md
+
+Database optimization
+Caching strategije
+API performance
+Frontend bundling
+
+10. 99-implementation-roadmap.md
+
+Fazni pristup implementaciji
+MVP funkcionalnosti
+Buduće proširenja
+Maintenance plan
+
+🔍 Moji predlozi za poboljšanja (za diskusiju)
+Database poboljšanja:
+
+Audit trail - dodavanje created_by, updated_by polja
+Soft delete - flag umesto fizičkog brisanja
+Appointment slots - predefinisani termini
+Patient history - versioning medicinskih stanja
+
+Backend poboljšanja:
+
+CQRS pattern - razdvajanje read/write operacija
+MediatR - za handling commands/queries
+FluentValidation - za validaciju
+Serilog - za strukturisano logovanje
+
+Frontend poboljšanja:
+
+React Query/SWR - za server state management
+React Hook Form - za forme
+Ant Design/Material-UI - za UI komponente
+Cypress - za E2E testiranje
+
+Infrastructure poboljšanja:
+
+Health checks - za monitoring
+Redis - za caching
+Nginx - kao reverse proxy
+Backup strategija - za PostgreSQL

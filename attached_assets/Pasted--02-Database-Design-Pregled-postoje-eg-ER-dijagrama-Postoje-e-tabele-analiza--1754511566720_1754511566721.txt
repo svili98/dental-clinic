@@ -1,0 +1,390 @@
+# 02 - Database Design
+
+## 🗄️ Pregled postojećeg ER dijagrama
+
+### Postojeće tabele (analiza)
+```sql
+-- Core entities
+patients (id, first_name, last_name, phone, email, date_of_birth, 
+         address, gender, created_at, updated_at, deleted_at, 
+         status_id, jmbg UNIQUE)
+
+appointments (id, patient_id, date_time, reason, status_type_id, 
+             notes, created_at, updated_at, duration, employee_id, 
+             treatment_id, location_id)
+
+medical_conditions (id, name, description, severity, category, 
+                   created_at, updated_at)
+
+-- Junction tables
+patient_medical_conditions (id, patient_id, medical_condition_id, 
+                           notes, diagnosis_date, status, 
+                           created_at, updated_at)
+
+-- Lookup tables
+patient_status_type (id, name)
+appointment_status_type (id, name)
+employees (id, first_name, last_name)
+treatments (id, name)
+locations (id, name, note)
+```
+
+## 📋 Predlozi za poboljšanje
+
+### 1. **Audit Trail poboljšanja**
+```sql
+-- Dodavanje audit polja u sve tabele
+ALTER TABLE patients ADD COLUMN created_by INTEGER;
+ALTER TABLE patients ADD COLUMN updated_by INTEGER;
+
+-- Reference na employees tabelu
+ALTER TABLE patients ADD CONSTRAINT fk_patients_created_by 
+    FOREIGN KEY (created_by) REFERENCES employees(id);
+```
+
+### 2. **Employees tabela proširenja**
+```sql
+-- Dodavanje potrebnih polja
+ALTER TABLE employees ADD COLUMN email VARCHAR(255) UNIQUE;
+ALTER TABLE employees ADD COLUMN phone VARCHAR(20);
+ALTER TABLE employees ADD COLUMN specialization VARCHAR(100);
+ALTER TABLE employees ADD COLUMN is_active BOOLEAN DEFAULT TRUE;
+ALTER TABLE employees ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE employees ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+```
+
+### 3. **File Storage tabela (nova)**
+```sql
+-- File format enum za različite tipove fajlova
+CREATE TYPE file_format AS ENUM (
+    'image_standard',    -- JPG, PNG, TIFF, BMP
+    'image_medical',     -- DICOM
+    'document',          -- PDF, DOC, DOCX
+    'model_3d',          -- STL
+    'archive'            -- ZIP, RAR
+);
+
+CREATE TABLE patient_files (
+    id SERIAL PRIMARY KEY,
+    patient_id INTEGER NOT NULL,
+    file_name VARCHAR(255) NOT NULL,
+    file_path VARCHAR(500) NOT NULL,
+    file_size BIGINT NOT NULL,
+    mime_type VARCHAR(100) NOT NULL,
+    file_format file_format NOT NULL,
+    thumbnail_path VARCHAR(500),
+    compressed_path VARCHAR(500),
+    description TEXT,
+    is_compressed BOOLEAN DEFAULT FALSE,
+    original_size BIGINT,
+    compressed_size BIGINT,
+    uploaded_by INTEGER,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    CONSTRAINT fk_patient_files_patient 
+        FOREIGN KEY (patient_id) REFERENCES patients(id),
+    CONSTRAINT fk_patient_files_uploaded_by 
+        FOREIGN KEY (uploaded_by) REFERENCES employees(id)
+);
+```
+
+### 4. **Appointment optimizacije**
+```sql
+-- Fleksibilno vreme unosa - bez appointment slots
+-- Samo dodajemo indekse za performanse
+-- Dozvoljavamo overlapping termine za istog doktora
+```
+
+### 5. **Indexing strategija**
+```sql
+-- Performance critical indexes
+CREATE INDEX idx_patients_phone ON patients(phone);
+CREATE INDEX idx_patients_email ON patients(email);
+CREATE INDEX idx_patients_jmbg ON patients(jmbg);
+CREATE INDEX idx_patients_status ON patients(status_id) WHERE deleted_at IS NULL;
+
+-- Appointment related indexes
+CREATE INDEX idx_appointments_patient_date ON appointments(patient_id, date_time);
+CREATE INDEX idx_appointments_employee_date ON appointments(employee_id, date_time);
+CREATE INDEX idx_appointments_location_date ON appointments(location_id, date_time);
+CREATE INDEX idx_appointments_status ON appointments(status_type_id);
+
+-- File storage indexes
+CREATE INDEX idx_patient_files_patient ON patient_files(patient_id);
+CREATE INDEX idx_patient_files_format ON patient_files(file_format);
+CREATE INDEX idx_patient_files_size ON patient_files(file_size) WHERE file_size > 50000000; -- Files > 50MB
+```
+
+## 🔧 Database konfiguracija
+
+### Connection pooling
+```csharp
+// appsettings.json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Host=postgres;Database=dental_clinic;Username=postgres;Password=your_password;Pooling=true;MinPoolSize=5;MaxPoolSize=100;ConnectionLifeTime=300"
+  }
+}
+```
+
+### Backup strategija
+```yaml
+# docker-compose.yml
+services:
+  postgres:
+    environment:
+      - POSTGRES_DB=dental_clinic
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=your_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backups:/backups
+      - ./scripts/backup.sh:/docker-entrypoint-initdb.d/backup.sh
+
+  backup:
+    image: postgres:15
+    depends_on:
+      - postgres
+    environment:
+      - PGPASSWORD=your_password
+    volumes:
+      - ./backups:/backups
+    command: |
+      bash -c "
+        while true; do
+          sleep 86400  # 24 hours
+          pg_dump -h postgres -U postgres dental_clinic > /backups/backup_$(date +%Y%m%d_%H%M%S).sql
+          find /backups -name '*.sql' -mtime +7 -delete  # Keep 7 days
+        done
+      "
+```
+
+## 📁 File Storage Architecture
+
+### Directory struktura
+```
+/app/uploads/
+├── patients/
+│   ├── {patient_id}/
+│   │   ├── images/
+│   │   │   ├── original/           (bez compression)
+│   │   │   ├── compressed/         (90% quality za prikaz)
+│   │   │   └── thumbnails/         (150x150 za liste)
+│   │   ├── documents/
+│   │   ├── medical_images/         (DICOM fajlovi)
+│   │   ├── 3d_models/             (STL, OBJ fajlovi)
+│   │   └── archives/              (ZIP, RAR fajlovi)
+│   └── temp/                      (cleanup after 24h)
+├── system/
+│   └── avatars/
+└── backups/
+```
+
+### File handling strategy
+```csharp
+public class FileUploadService
+{
+    // Široka podrška za različite formate
+    private readonly string[] AllowedImageTypes = { 
+        ".jpg", ".jpeg", ".png", ".tiff", ".tif", ".bmp" 
+    };
+    private readonly string[] AllowedDocumentTypes = { 
+        ".pdf", ".doc", ".docx" 
+    };
+    private readonly string[] AllowedMedicalTypes = { 
+        ".dcm", ".dicom" 
+    };
+    private readonly string[] Allowed3DTypes = { 
+        ".stl", ".obj", ".ply" 
+    };
+    private readonly string[] AllowedArchiveTypes = { 
+        ".zip", ".rar", ".7z" 
+    };
+    
+    // BEZ ograničenja veličine fajla
+    // Automatska kompresija za slike > 10MB
+    // Progress tracking za velike fajlove
+    // Virus scanning (future)
+}
+```
+
+## 🎯 Seeding strategija
+
+### Initial data
+```sql
+-- Default statuses
+INSERT INTO patient_status_type (name) VALUES 
+('Active'), ('Inactive'), ('Archived');
+
+INSERT INTO appointment_status_type (name) VALUES 
+('Scheduled'), ('Completed'), ('Cancelled'), ('No Show');
+
+-- Default locations
+INSERT INTO locations (name, note) VALUES 
+('Main Office', 'Primary location'),
+('Room 1', 'General checkups'),
+('Room 2', 'Surgical procedures');
+
+-- Default treatments
+INSERT INTO treatments (name) VALUES 
+('Consultation'), ('Cleaning'), ('Filling'), 
+('Root Canal'), ('Extraction'), ('Whitening');
+
+-- Default medical conditions
+INSERT INTO medical_conditions (name, description, severity, category) VALUES 
+('Diabetes', 'Blood sugar regulation disorder', 'High', 'Systemic'),
+('Hypertension', 'High blood pressure', 'Medium', 'Cardiovascular'),
+('Allergies', 'Allergic reactions', 'Low', 'Immunological');
+```
+
+### Migration strategy
+```csharp
+// EF Core Migrations
+public partial class InitialCreate : Migration
+{
+    protected override void Up(MigrationBuilder migrationBuilder)
+    {
+        // Create all tables
+        // Add indexes
+        // Seed initial data
+    }
+}
+```
+
+## 🔍 Query optimization patterns
+
+### Common queries
+```sql
+-- Patient search (will be frequent)
+SELECT * FROM patients 
+WHERE deleted_at IS NULL 
+AND (first_name ILIKE '%search%' OR last_name ILIKE '%search%' OR phone LIKE '%search%')
+ORDER BY last_name, first_name
+LIMIT 20 OFFSET 0;
+
+-- Today's appointments
+SELECT a.*, p.first_name, p.last_name, e.first_name as doctor_name
+FROM appointments a
+JOIN patients p ON a.patient_id = p.id
+JOIN employees e ON a.employee_id = e.id
+WHERE DATE(a.date_time) = CURRENT_DATE
+ORDER BY a.date_time;
+
+-- Patient medical history
+SELECT mc.name, pmc.notes, pmc.diagnosis_date
+FROM patient_medical_conditions pmc
+JOIN medical_conditions mc ON pmc.medical_condition_id = mc.id
+WHERE pmc.patient_id = $1
+ORDER BY pmc.diagnosis_date DESC;
+```
+
+## 🛡️ Data validation na DB nivou
+
+### Constraints
+```sql
+-- Business rules enforcement
+ALTER TABLE patients ADD CONSTRAINT check_phone_format 
+    CHECK (phone ~ '^[0-9+\-\s()]+
+
+## 📊 Performance monitoring
+
+### Slow query logging
+```postgresql
+-- postgresql.conf
+log_statement = 'all'
+log_min_duration_statement = 1000  # Log queries slower than 1s
+log_line_prefix = '%t [%p]: [%l-1] user=%u,db=%d,app=%a,client=%h '
+```
+
+### Database size monitoring
+```sql
+-- Monitor table sizes
+SELECT 
+    schemaname,
+    tablename,
+    pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) as size
+FROM pg_tables 
+WHERE schemaname = 'public'
+ORDER BY pg_total_relation_size(schemaname||'.'||tablename) DESC;
+```
+
+## ❓ Otvorena pitanja
+
+1. **Full-text search**: Trebamo li PostgreSQL FTS za pretragu pacijenata?
+2. **Partitioning**: Trebamo li particionisanje appointments tabele po datumu?
+3. **Archiving**: Strategija za arhiviranje starih appointments?
+4. **Replication**: Trebamo li read replicas za reporting?
+
+Da li se slažeš sa ovim poboljšanjima ili imaš dodatne predloge?);
+
+ALTER TABLE patients ADD CONSTRAINT check_email_format 
+    CHECK (email ~ '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}
+
+## 📊 Performance monitoring
+
+### Slow query logging
+```postgresql
+-- postgresql.conf
+log_statement = 'all'
+log_min_duration_statement = 1000  # Log queries slower than 1s
+log_line_prefix = '%t [%p]: [%l-1] user=%u,db=%d,app=%a,client=%h '
+```
+
+### Database size monitoring
+```sql
+-- Monitor table sizes
+SELECT 
+    schemaname,
+    tablename,
+    pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) as size
+FROM pg_tables 
+WHERE schemaname = 'public'
+ORDER BY pg_total_relation_size(schemaname||'.'||tablename) DESC;
+```
+
+## ❓ Otvorena pitanja
+
+1. **Full-text search**: Trebamo li PostgreSQL FTS za pretragu pacijenata?
+2. **Partitioning**: Trebamo li particionisanje appointments tabele po datumu?
+3. **Archiving**: Strategija za arhiviranje starih appointments?
+4. **Replication**: Trebamo li read replicas za reporting?
+
+Da li se slažeš sa ovim poboljšanjima ili imaš dodatne predloge?);
+
+ALTER TABLE appointments ADD CONSTRAINT check_duration_positive 
+    CHECK (duration > 0);
+
+-- Bez overlapping constraint-a - dozvoljavamo preklapanje termina
+```
+
+## 📊 Performance monitoring
+
+### Slow query logging
+```postgresql
+-- postgresql.conf
+log_statement = 'all'
+log_min_duration_statement = 1000  # Log queries slower than 1s
+log_line_prefix = '%t [%p]: [%l-1] user=%u,db=%d,app=%a,client=%h '
+```
+
+### Database size monitoring
+```sql
+-- Monitor table sizes
+SELECT 
+    schemaname,
+    tablename,
+    pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) as size
+FROM pg_tables 
+WHERE schemaname = 'public'
+ORDER BY pg_total_relation_size(schemaname||'.'||tablename) DESC;
+```
+
+## ❓ Otvorena pitanja
+
+1. **Full-text search**: Trebamo li PostgreSQL FTS za pretragu pacijenata?
+2. **Partitioning**: Trebamo li particionisanje appointments tabele po datumu?
+3. **Archiving**: Strategija za arhiviranje starih appointments?
+4. **Replication**: Trebamo li read replicas za reporting?
+
+Da li se slažeš sa ovim poboljšanjima ili imaš dodatne predloge?
