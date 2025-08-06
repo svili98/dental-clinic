@@ -15,8 +15,8 @@ export function PatientStats() {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {[1, 2, 3, 4].map((i) => (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {[1, 2, 3].map((i) => (
           <Card key={i} className="card-hover">
             <CardContent className="p-6">
               <div className="animate-pulse">
@@ -50,14 +50,7 @@ export function PatientStats() {
       bgColor: "bg-green-100",
       iconColor: "text-green-500"
     },
-    {
-      title: "Files Uploaded",
-      value: stats.filesUploaded.toLocaleString(),
-      change: "+8% from last week",
-      icon: FileText,
-      bgColor: "bg-yellow-100",
-      iconColor: "text-yellow-500"
-    },
+
     {
       title: "Revenue (Month)",
       value: `$${stats.monthlyRevenue.toLocaleString()}`,
@@ -69,7 +62,7 @@ export function PatientStats() {
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {statItems.map((item) => {
         const Icon = item.icon;
         return (

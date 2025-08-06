@@ -11,6 +11,7 @@ import PatientDetailsPage from "@/pages/patients/patient-details";
 import AppointmentsPage from "@/pages/appointments/appointments";
 import FilesPage from "@/pages/files/files";
 import MedicalRecordsPage from "@/pages/medical-records/medical-records";
+import SettingsPage from "@/pages/settings/settings";
 
 function Router() {
   return (
@@ -23,6 +24,7 @@ function Router() {
       <Route path="/appointments" component={AppointmentsPage} />
       <Route path="/files" component={FilesPage} />
       <Route path="/medical-records" component={MedicalRecordsPage} />
+      <Route path="/settings" component={SettingsPage} />
       {/* Fallback to 404 */}
       <Route component={NotFound} />
     </Switch>

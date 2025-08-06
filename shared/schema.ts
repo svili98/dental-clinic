@@ -67,6 +67,7 @@ export const insertPatientSchema = createInsertSchema(patients).omit({
   dateOfBirth: z.string().min(1, "Date of birth is required"),
   gender: z.enum(["Male", "Female"]),
   jmbg: z.string().length(13, "JMBG must be 13 digits").regex(/^\d{13}$/, "JMBG must contain only digits"),
+  medicalConditions: z.array(z.string()).optional(),
 });
 
 export const insertAppointmentSchema = createInsertSchema(appointments).omit({
@@ -109,6 +110,5 @@ export interface PaginatedResponse<T> {
 export interface DashboardStats {
   totalPatients: number;
   todayAppointments: number;
-  filesUploaded: number;
   monthlyRevenue: number;
 }

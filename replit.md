@@ -26,6 +26,24 @@ Preferred communication style: Simple, everyday language.
   - Treatment progression tracking
   - Professional medical record format
 
+## January 6, 2025 - Dashboard and Patient Form Improvements
+- Removed "Files Uploaded" statistic from dashboard per user feedback
+- Updated dashboard to show only 3 key metrics: Total Patients, Today's Appointments, Monthly Revenue
+- Enhanced patient creation form with medical conditions selection:
+  - Added 15 common medical conditions with checkbox selection
+  - Visual display of selected conditions with removal capability
+  - Professional medical conditions tracking
+- Added file upload capability to patient creation:
+  - Drag-and-drop file upload interface
+  - Support for PDF, JPG, PNG, DOC, DOCX files
+  - File size display and removal functionality
+  - Professional document management during patient registration
+- Created comprehensive Settings page for administrators:
+  - Revenue visibility controls for different user roles
+  - Administrator vs Staff member permission management
+  - Financial data access configuration
+  - Professional role-based access control system
+
 # System Architecture
 
 ## Frontend Architecture

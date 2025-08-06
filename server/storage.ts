@@ -308,13 +308,11 @@ export class MemStorage implements IStorage {
   async getDashboardStats(): Promise<DashboardStats> {
     const totalPatients = this.patients.size;
     const todayAppointments = (await this.getTodayAppointments()).length;
-    const filesUploaded = this.patientFiles.size;
     const monthlyRevenue = 32849; // Mock value
 
     return {
       totalPatients,
       todayAppointments,
-      filesUploaded,
       monthlyRevenue
     };
   }

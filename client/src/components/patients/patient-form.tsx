@@ -1,12 +1,16 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { insertPatientSchema, type InsertPatient, type Patient } from "@shared/schema";
+import { X, Upload, FileText } from "lucide-react";
 import { format } from "date-fns";
 
 interface PatientFormProps {
@@ -16,7 +20,16 @@ interface PatientFormProps {
   onCancel?: () => void;
 }
 
+const commonMedicalConditions = [
+  "Diabetes", "Hypertension", "Heart Disease", "Allergies", "Asthma", 
+  "Arthritis", "Depression", "Anxiety", "High Cholesterol", "Thyroid Disorder",
+  "Kidney Disease", "Liver Disease", "Cancer History", "Stroke History", "Epilepsy"
+];
+
 export function PatientForm({ initialData, onSubmit, loading, onCancel }: PatientFormProps) {
+  const [selectedConditions, setSelectedConditions] = useState<string[]>([]);
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+
   const form = useForm<InsertPatient>({
     resolver: zodResolver(insertPatientSchema),
     defaultValues: initialData ? {
@@ -28,6 +41,7 @@ export function PatientForm({ initialData, onSubmit, loading, onCancel }: Patien
       address: initialData.address || "",
       gender: initialData.gender as "Male" | "Female",
       jmbg: initialData.jmbg,
+      medicalConditions: [],
     } : {
       firstName: "",
       lastName: "",
@@ -37,8 +51,34 @@ export function PatientForm({ initialData, onSubmit, loading, onCancel }: Patien
       address: "",
       gender: "Male",
       jmbg: "",
+      medicalConditions: [],
     },
   });
+
+  const handleConditionChange = (condition: string, checked: boolean) => {
+    if (checked) {
+      setSelectedConditions(prev => [...prev, condition]);
+    } else {
+      setSelectedConditions(prev => prev.filter(c => c !== condition));
+    }
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    setUploadedFiles(prev => [...prev, ...files]);
+  };
+
+  const removeFile = (index: number) => {
+    setUploadedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleFormSubmit = (data: InsertPatient) => {
+    const formDataWithConditions = {
+      ...data,
+      medicalConditions: selectedConditions,
+    };
+    onSubmit(formDataWithConditions);
+  };
 
   return (
     <Card>
@@ -49,7 +89,7 @@ export function PatientForm({ initialData, onSubmit, loading, onCancel }: Patien
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormField
                 control={form.control}
@@ -171,6 +211,104 @@ export function PatientForm({ initialData, onSubmit, loading, onCancel }: Patien
                 </FormItem>
               )}
             />
+
+            {/* Medical Conditions Section */}
+            <div className="space-y-4">
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Medical Conditions</h3>
+                <p className="text-sm text-gray-500 mb-4">Select any existing medical conditions:</p>
+                
+                {selectedConditions.length > 0 && (
+                  <div className="mb-4">
+                    <p className="text-sm font-medium text-gray-700 mb-2">Selected conditions:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedConditions.map((condition) => (
+                        <Badge key={condition} variant="secondary" className="px-3 py-1">
+                          {condition}
+                          <button
+                            type="button"
+                            onClick={() => handleConditionChange(condition, false)}
+                            className="ml-2 text-gray-500 hover:text-gray-700"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {commonMedicalConditions.map((condition) => (
+                    <div key={condition} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={condition}
+                        checked={selectedConditions.includes(condition)}
+                        onCheckedChange={(checked) => handleConditionChange(condition, !!checked)}
+                      />
+                      <label htmlFor={condition} className="text-sm text-gray-700 cursor-pointer">
+                        {condition}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* File Upload Section */}
+            <div className="space-y-4">
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Patient Documents</h3>
+                <p className="text-sm text-gray-500 mb-4">Upload medical records, ID documents, or other relevant files:</p>
+                
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+                  <Upload className="mx-auto h-8 w-8 text-gray-400 mb-2" />
+                  <p className="text-sm text-gray-600 mb-2">Drag and drop files here, or click to browse</p>
+                  <input
+                    type="file"
+                    multiple
+                    accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                    id="file-upload"
+                  />
+                  <label htmlFor="file-upload" className="cursor-pointer">
+                    <Button type="button" variant="outline" size="sm">
+                      Choose Files
+                    </Button>
+                  </label>
+                  <p className="text-xs text-gray-500 mt-2">Supported: PDF, JPG, PNG, DOC, DOCX (max 10MB each)</p>
+                </div>
+
+                {uploadedFiles.length > 0 && (
+                  <div className="mt-4">
+                    <p className="text-sm font-medium text-gray-700 mb-2">Uploaded files:</p>
+                    <div className="space-y-2">
+                      {uploadedFiles.map((file, index) => (
+                        <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                          <div className="flex items-center space-x-3">
+                            <FileText className="h-5 w-5 text-gray-400" />
+                            <div>
+                              <p className="text-sm font-medium text-gray-900">{file.name}</p>
+                              <p className="text-xs text-gray-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                            </div>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeFile(index)}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
             
             <div className="flex justify-end space-x-3 pt-6">
               {onCancel && (
