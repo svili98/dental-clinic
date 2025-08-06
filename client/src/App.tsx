@@ -10,6 +10,7 @@ import CreatePatientPage from "@/pages/patients/create-patient";
 import PatientDetailsPage from "@/pages/patients/patient-details";
 import AppointmentsPage from "@/pages/appointments/appointments";
 import FilesPage from "@/pages/files/files";
+import MedicalRecordsPage from "@/pages/medical-records/medical-records";
 
 function Router() {
   return (
@@ -21,6 +22,7 @@ function Router() {
       <Route path="/patients/:id/edit" component={CreatePatientPage} />
       <Route path="/appointments" component={AppointmentsPage} />
       <Route path="/files" component={FilesPage} />
+      <Route path="/medical-records" component={MedicalRecordsPage} />
       {/* Fallback to 404 */}
       <Route component={NotFound} />
     </Switch>

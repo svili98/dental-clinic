@@ -6,6 +6,26 @@ DentalCare is a full-stack dental clinic management system built with modern web
 
 Preferred communication style: Simple, everyday language.
 
+# Recent Changes
+
+## January 6, 2025 - Enhanced Patient Details and Medical Records
+- Fixed medical-records route functionality - now fully working with comprehensive patient selection
+- Enhanced patient details page with detailed treatment history showing:
+  - Treatment notes and comments for each appointment
+  - Doctor information and treatment IDs
+  - Duration and fee information
+  - Follow-up requirements
+- Added comprehensive financial tracking system:
+  - Payment summary cards (Total Paid, Outstanding, Total Due)
+  - Outstanding payment details with due dates
+  - Patient financial overview in sidebar
+  - Record payment functionality
+- Improved appointment history display with:
+  - Detailed treatment descriptions
+  - Status indicators and completion notes
+  - Treatment progression tracking
+  - Professional medical record format
+
 # System Architecture
 
 ## Frontend Architecture

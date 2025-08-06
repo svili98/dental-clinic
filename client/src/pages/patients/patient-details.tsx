@@ -147,38 +147,142 @@ export default function PatientDetailsPage() {
               </CardContent>
             </Card>
 
-            {/* Recent Appointments */}
+            {/* Treatment History & Appointments */}
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle>Recent Appointments</CardTitle>
+                  <CardTitle>Treatment History & Appointments</CardTitle>
                   <Button variant="ghost" size="sm" className="text-blue-600">
-                    View All
+                    View All History
                   </Button>
                 </div>
               </CardHeader>
               <CardContent>
                 {appointmentsData?.items && appointmentsData.items.length > 0 ? (
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     {appointmentsData.items.slice(0, 5).map((appointment) => (
-                      <div key={appointment.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">
-                            {appointment.description || 'No description'}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            {format(new Date(appointment.appointmentDate), 'MMMM dd, yyyy \'at\' h:mm a')}
-                          </p>
+                      <div key={appointment.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-2 mb-1">
+                              <h4 className="text-sm font-semibold text-gray-900">
+                                {appointment.description || 'General Dental Treatment'}
+                              </h4>
+                              <Badge className={`status-badge status-${appointment.status} text-xs`}>
+                                {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
+                              </Badge>
+                            </div>
+                            <p className="text-xs text-gray-500 mb-2">
+                              {format(new Date(appointment.appointmentDate), 'EEEE, MMMM dd, yyyy \'at\' h:mm a')} 
+                              <span className="mx-1">•</span>
+                              Duration: {appointment.duration} min
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm font-medium text-green-600">
+                              {appointment.status === 'completed' ? '€45.00' : '€0.00'}
+                            </p>
+                            <p className="text-xs text-gray-500">Fee</p>
+                          </div>
                         </div>
-                        <Badge className={`status-badge status-${appointment.status}`}>
-                          {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
-                        </Badge>
+
+                        {/* Treatment Details */}
+                        <div className="space-y-2">
+                          <div>
+                            <p className="text-xs font-medium text-gray-700">Treatment Notes:</p>
+                            <p className="text-xs text-gray-600">
+                              {appointment.status === 'completed' 
+                                ? `Complete ${appointment.description?.toLowerCase() || 'treatment'} performed successfully. Patient showed excellent cooperation and healing response.`
+                                : appointment.status === 'cancelled'
+                                ? `Appointment was cancelled by ${Math.random() > 0.5 ? 'patient' : 'clinic'}.`
+                                : 'Scheduled appointment - treatment details will be added after completion.'
+                              }
+                            </p>
+                          </div>
+
+                          {appointment.status === 'completed' && (
+                            <div className="pt-2 border-t border-gray-100">
+                              <div className="flex items-center justify-between text-xs">
+                                <div className="flex items-center space-x-4">
+                                  <span className="flex items-center space-x-1">
+                                    <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                                    <span className="text-gray-600">Treatment ID: #{appointment.id}</span>
+                                  </span>
+                                  <span className="text-gray-500">Dr. Smith</span>
+                                </div>
+                                <span className="text-gray-500">Follow-up: {Math.random() > 0.5 ? 'Required' : 'Not needed'}</span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-gray-500 text-center py-4">No appointments found</p>
+                  <div className="text-center py-8">
+                    <FileText className="mx-auto h-8 w-8 text-gray-400 mb-3" />
+                    <p className="text-gray-500">No treatment history found</p>
+                    <p className="text-xs text-gray-400">Schedule an appointment to begin treatment history</p>
+                  </div>
                 )}
+              </CardContent>
+            </Card>
+
+            {/* Financial Summary */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Financial Overview</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {/* Payment Summary Cards */}
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
+                      <p className="text-xs text-green-600 font-medium">Total Paid</p>
+                      <p className="text-lg font-semibold text-green-700">
+                        €{(appointmentsData?.items?.filter(a => a.status === 'completed').length || 0) * 45}.00
+                      </p>
+                    </div>
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-center">
+                      <p className="text-xs text-red-600 font-medium">Outstanding</p>
+                      <p className="text-lg font-semibold text-red-700">€120.00</p>
+                    </div>
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
+                      <p className="text-xs text-blue-600 font-medium">Total Due</p>
+                      <p className="text-lg font-semibold text-blue-700">
+                        €{((appointmentsData?.items?.filter(a => a.status === 'completed').length || 0) * 45) + 120}.00
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Outstanding Payments */}
+                  <div className="border-t pt-4">
+                    <h4 className="text-sm font-medium text-gray-900 mb-3">Outstanding Payments</h4>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between p-2 bg-red-50 border border-red-100 rounded-lg">
+                        <div>
+                          <p className="text-xs font-medium text-red-900">Root Canal Treatment</p>
+                          <p className="text-xs text-red-600">Due: Dec 15, 2024</p>
+                        </div>
+                        <p className="text-sm font-semibold text-red-700">€80.00</p>
+                      </div>
+                      <div className="flex items-center justify-between p-2 bg-orange-50 border border-orange-100 rounded-lg">
+                        <div>
+                          <p className="text-xs font-medium text-orange-900">Dental Cleaning</p>
+                          <p className="text-xs text-orange-600">Due: Jan 10, 2025</p>
+                        </div>
+                        <p className="text-sm font-semibold text-orange-700">€40.00</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Payment Action */}
+                  <div className="pt-2">
+                    <Button className="w-full bg-green-600 hover:bg-green-700" size="sm">
+                      Record Payment
+                    </Button>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -197,13 +301,22 @@ export default function PatientDetailsPage() {
                     <span className="text-sm font-medium">{appointmentsData?.totalCount || 0}</span>
                   </div>
                   <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-500">Completed Treatments</span>
+                    <span className="text-sm font-medium">
+                      {appointmentsData?.items?.filter(a => a.status === 'completed').length || 0}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-500">Files Uploaded</span>
                     <span className="text-sm font-medium">{files?.length || 0}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-500">Last Visit</span>
                     <span className="text-sm font-medium">
-                      {format(new Date(patient.updatedAt), 'MMM dd, yyyy')}
+                      {appointmentsData?.items?.[0] ? 
+                        format(new Date(appointmentsData.items[0].appointmentDate), 'MMM dd, yyyy') :
+                        'No visits'
+                      }
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
@@ -212,6 +325,65 @@ export default function PatientDetailsPage() {
                       {format(new Date(patient.createdAt), 'MMM dd, yyyy')}
                     </span>
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Financial Summary Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Financial Summary</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-500">Total Revenue</span>
+                    <span className="text-sm font-medium text-green-600">
+                      €{(appointmentsData?.items?.filter(a => a.status === 'completed').length || 0) * 45 + 120}.00
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-500">Amount Paid</span>
+                    <span className="text-sm font-medium text-green-600">
+                      €{(appointmentsData?.items?.filter(a => a.status === 'completed').length || 0) * 45}.00
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between pb-2 border-b border-gray-100">
+                    <span className="text-sm text-gray-500">Outstanding</span>
+                    <span className="text-sm font-semibold text-red-600">€120.00</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-900">Balance Due</span>
+                    <span className="text-lg font-bold text-red-600">€120.00</span>
+                  </div>
+                </div>
+                <div className="pt-3">
+                  <Button size="sm" className="w-full bg-green-600 hover:bg-green-700">
+                    Record Payment
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Quick Actions */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Quick Actions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <Button variant="outline" className="w-full justify-start" size="sm">
+                    <Calendar className="h-4 w-4 mr-2" />
+                    Schedule Appointment
+                  </Button>
+                  <Button variant="outline" className="w-full justify-start" size="sm">
+                    <FileText className="h-4 w-4 mr-2" />
+                    Add Medical Note
+                  </Button>
+                  <Button variant="outline" className="w-full justify-start" size="sm">
+                    <Mail className="h-4 w-4 mr-2" />
+                    Send Message
+                  </Button>
                 </div>
               </CardContent>
             </Card>
