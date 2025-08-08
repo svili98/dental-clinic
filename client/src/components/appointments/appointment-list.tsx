@@ -61,7 +61,7 @@ export function AppointmentList() {
             appointments.map((appointment) => (
               <div 
                 key={appointment.id} 
-                className="flex items-center space-x-3 p-3 rounded-lg border border-gray-200 hover:bg-gray-50"
+                className="flex items-center space-x-3 p-3 rounded-lg border border-border hover:bg-muted/50"
               >
                 <div className={`w-2 h-2 rounded-full ${
                   appointment.status === 'scheduled' ? 'bg-blue-500' :

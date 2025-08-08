@@ -48,7 +48,7 @@ export function PatientTable({ patients, loading }: PatientTableProps) {
     <div className="overflow-x-auto">
       <Table>
         <TableHeader>
-          <TableRow className="bg-gray-50">
+          <TableRow className="bg-muted/50">
             <TableHead className="w-12">
               <Checkbox
                 checked={selectedPatients.length === patients.length && patients.length > 0}
@@ -74,7 +74,7 @@ export function PatientTable({ patients, loading }: PatientTableProps) {
               </TableCell>
               <TableCell>
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
+                  <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center">
                     <span className="text-gray-600 text-sm">👤</span>
                   </div>
                   <div>

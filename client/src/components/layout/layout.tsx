@@ -23,7 +23,7 @@ export function Layout({ children }: LayoutProps) {
   const pageTitle = getPageTitle(location);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
+    <div className="flex h-screen overflow-hidden bg-background">
       <Sidebar 
         collapsed={sidebarCollapsed} 
         onCollapse={setSidebarCollapsed}
@@ -35,7 +35,7 @@ export function Layout({ children }: LayoutProps) {
           title={pageTitle}
         />
         
-        <main className="flex-1 overflow-auto bg-gray-50">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden bg-background">
           {children}
         </main>
       </div>

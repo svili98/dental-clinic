@@ -10,6 +10,7 @@ import { Plus, FileText, Calendar, User } from "lucide-react";
 import { format } from "date-fns";
 import { useMedicalNotes, useCreateMedicalNote } from "@/hooks/use-medical-notes";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "@/lib/i18n";
 
 interface MedicalNotesProps {
   patientId: number;
@@ -24,6 +25,9 @@ export function MedicalNotes({ patientId }: MedicalNotesProps) {
   const { data: notes, isLoading } = useMedicalNotes(patientId);
   const createNoteMutation = useCreateMedicalNote();
   const { toast } = useToast();
+  const { t } = useTranslation();
+
+  const notesArray = Array.isArray(notes) ? notes : [];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,18 +82,18 @@ export function MedicalNotes({ patientId }: MedicalNotesProps) {
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center">
             <FileText className="h-5 w-5 mr-2" />
-            Medical Notes
+            {t.medicalNotes}
           </CardTitle>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
                 <Plus className="h-4 w-4 mr-2" />
-                Add Note
+                {t.addMedicalNote}
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-lg">
               <DialogHeader>
-                <DialogTitle>Add Medical Note</DialogTitle>
+                <DialogTitle>{t.addMedicalNote}</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
@@ -147,9 +151,9 @@ export function MedicalNotes({ patientId }: MedicalNotesProps) {
               </div>
             ))}
           </div>
-        ) : notes && notes.length > 0 ? (
+        ) : notesArray.length > 0 ? (
           <div className="space-y-4">
-            {notes.map((note: any) => (
+            {notesArray.map((note: any) => (
               <div key={note.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex items-center space-x-2">

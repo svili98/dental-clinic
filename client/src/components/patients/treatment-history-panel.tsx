@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, Activity, Calendar, User, Clock, DollarSign } from "lucide-react";
 import { format } from "date-fns";
 import { useTreatmentHistory, useCreateTreatmentHistory } from "@/hooks/use-treatment-history";
+import { useCreateToothRecord } from "@/hooks/use-tooth-records";
 import { useToast } from "@/hooks/use-toast";
 
 interface TreatmentHistoryPanelProps {
@@ -26,7 +27,69 @@ export function TreatmentHistoryPanel({ patientId }: TreatmentHistoryPanelProps)
 
   const { data: treatments, isLoading } = useTreatmentHistory(patientId);
   const createTreatmentMutation = useCreateTreatmentHistory();
+  const createToothRecordMutation = useCreateToothRecord();
   const { toast } = useToast();
+
+  // Function to create tooth records based on treatment
+  const createToothRecordsForTreatment = async (toothNumbers: string, treatmentType: string, description: string) => {
+    if (!toothNumbers.trim()) return;
+    
+    // Parse tooth numbers (supports formats like "1,2,3" or "14-16" or "18 19 20")
+    let teeth: number[] = [];
+    const parts = toothNumbers.replace(/[\s,]+/g, ',').split(',');
+    
+    for (const part of parts) {
+      if (part.includes('-')) {
+        const [start, end] = part.split('-').map(n => parseInt(n.trim()));
+        if (start && end) {
+          for (let i = start; i <= end; i++) {
+            teeth.push(i);
+          }
+        }
+      } else {
+        const tooth = parseInt(part.trim());
+        if (tooth) teeth.push(tooth);
+      }
+    }
+    
+    // Create tooth records for each tooth
+    for (const toothNumber of teeth) {
+      try {
+        // Determine condition based on treatment type
+        let condition = "healthy";
+        if (treatmentType.toLowerCase().includes("filling")) condition = "filled";
+        else if (treatmentType.toLowerCase().includes("crown")) condition = "crown";
+        else if (treatmentType.toLowerCase().includes("root canal")) condition = "root_canal";
+        else if (treatmentType.toLowerCase().includes("extraction")) condition = "extracted";
+        else if (treatmentType.toLowerCase().includes("implant")) condition = "implant";
+        else if (treatmentType.toLowerCase().includes("cleaning")) condition = "healthy";
+        
+        await createToothRecordMutation.mutateAsync({
+          patientId,
+          toothNumber,
+          condition: condition as any,
+          treatment: `${treatmentType}: ${description}`,
+          notes: `Auto-created from treatment history`,
+          color: getColorForCondition(condition),
+          isCompleted: true,
+        });
+      } catch (error) {
+        console.warn(`Failed to create tooth record for tooth ${toothNumber}:`, error);
+      }
+    }
+  };
+  
+  const getColorForCondition = (condition: string) => {
+    const colors: { [key: string]: string } = {
+      healthy: "#ffffff",
+      filled: "#4444ff",
+      crown: "#ffaa00",
+      root_canal: "#8844ff",
+      extracted: "#666666",
+      implant: "#44aaff",
+    };
+    return colors[condition] || "#ffffff";
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,9 +113,14 @@ export function TreatmentHistoryPanel({ patientId }: TreatmentHistoryPanelProps)
         notes: notes.trim() || undefined,
       });
 
+      // Create tooth records if tooth numbers were specified
+      if (toothNumbers.trim()) {
+        await createToothRecordsForTreatment(toothNumbers.trim(), treatmentType.trim(), description.trim());
+      }
+
       toast({
         title: "Success",
-        description: "Treatment history added successfully",
+        description: "Treatment history added successfully. Odontogram updated.",
       });
 
       // Reset form
@@ -140,8 +208,9 @@ export function TreatmentHistoryPanel({ patientId }: TreatmentHistoryPanelProps)
                   <Input
                     value={toothNumbers}
                     onChange={(e) => setToothNumbers(e.target.value)}
-                    placeholder="e.g., 1,2,3 or 14-16"
+                    placeholder="ISO 3950: e.g., 11,12,13 or 14-16 or 21 22"
                   />
+                  <p className="text-xs text-gray-500">Use ISO 3950 (FDI) numbering. Will automatically update odontogram.</p>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -196,7 +265,7 @@ export function TreatmentHistoryPanel({ patientId }: TreatmentHistoryPanelProps)
               </div>
             ))}
           </div>
-        ) : treatments && treatments.length > 0 ? (
+        ) : treatments && Array.isArray(treatments) && treatments.length > 0 ? (
           <div className="space-y-4">
             {treatments.map((treatment: any) => (
               <div key={treatment.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">

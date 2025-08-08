@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Search, Bell, Plus, Menu } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { ModeToggle } from "@/components/ui/mode-toggle";
+import { LanguageToggle } from "@/components/ui/language-toggle";
+import { useTranslation } from "@/lib/i18n";
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -14,6 +16,7 @@ interface HeaderProps {
 export function Header({ onMenuClick, title }: HeaderProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [, setLocation] = useLocation();
+  const { t } = useTranslation();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,7 +26,7 @@ export function Header({ onMenuClick, title }: HeaderProps) {
   };
 
   return (
-    <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+    <header className="bg-background border-b border-border px-6 py-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <Button
@@ -34,16 +37,16 @@ export function Header({ onMenuClick, title }: HeaderProps) {
           >
             <Menu className="h-4 w-4" />
           </Button>
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">{title}</h1>
+          <h1 className="text-2xl font-semibold text-foreground">{title}</h1>
         </div>
         
         <div className="flex items-center space-x-4">
           {/* Search */}
           <form onSubmit={handleSearch} className="relative hidden md:block">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
               type="text"
-              placeholder="Search patients..."
+              placeholder={t.search + ' ' + t.patients.toLowerCase() + '...'}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-64 pl-10"
@@ -61,6 +64,9 @@ export function Header({ onMenuClick, title }: HeaderProps) {
             </Badge>
           </Button>
           
+          {/* Language Toggle */}
+          <LanguageToggle />
+          
           {/* Theme Toggle */}
           <ModeToggle />
           
@@ -68,7 +74,7 @@ export function Header({ onMenuClick, title }: HeaderProps) {
           <Link href="/patients/create">
             <Button className="bg-blue-600 hover:bg-blue-700">
               <Plus className="h-4 w-4 mr-2" />
-              New Patient
+              {t.add + ' ' + t.patients.slice(0, -1)}
             </Button>
           </Link>
         </div>
