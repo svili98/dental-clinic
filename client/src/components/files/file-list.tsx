@@ -1,16 +1,20 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useState } from "react";
 import { usePatientFiles, useDeletePatientFile } from "@/hooks/use-files";
 import { Eye, Download, Trash2, FileText, Image, Package } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { ImagePreview } from "./image-preview";
 
 interface FileListProps {
   patientId?: number;
 }
 
 export function FileList({ patientId }: FileListProps) {
+  const [selectedFile, setSelectedFile] = useState<any>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
   const { data: files, isLoading } = usePatientFiles(patientId || 0);
   const deleteFileMutation = useDeletePatientFile();
   const { toast } = useToast();
@@ -59,6 +63,11 @@ export function FileList({ patientId }: FileListProps) {
         });
       }
     }
+  };
+
+  const handlePreview = (file: any) => {
+    setSelectedFile(file);
+    setPreviewOpen(true);
   };
 
   if (!patientId) {
@@ -131,7 +140,12 @@ export function FileList({ patientId }: FileListProps) {
                   )}
                   
                   <div className="flex items-center space-x-2">
-                    <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-blue-600 hover:text-blue-700"
+                      onClick={() => handlePreview(file)}
+                    >
                       <Eye className="h-3 w-3 mr-1" />
                       View
                     </Button>
@@ -160,6 +174,18 @@ export function FileList({ patientId }: FileListProps) {
           </div>
         )}
       </CardContent>
+      
+      {/* Image Preview Modal */}
+      {selectedFile && (
+        <ImagePreview
+          file={selectedFile}
+          isOpen={previewOpen}
+          onClose={() => {
+            setPreviewOpen(false);
+            setSelectedFile(null);
+          }}
+        />
+      )}
     </Card>
   );
 }

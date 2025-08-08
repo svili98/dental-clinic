@@ -5,7 +5,12 @@ import {
   type InsertAppointment,
   type PatientFile,
   type InsertPatientFile,
+  type ToothRecord,
+  type InsertToothRecord,
   type MedicalCondition,
+  type MedicalNote,
+  type TreatmentHistory,
+  type PaymentRecord,
   type DashboardStats,
   type PaginatedResponse
 } from "@shared/schema";
@@ -35,6 +40,40 @@ export interface IStorage {
   // Medical Conditions
   getMedicalConditions(): Promise<MedicalCondition[]>;
   
+  // Tooth Records (Odontogram)
+  getPatientToothRecords(patientId: number): Promise<ToothRecord[]>;
+  createToothRecord(record: InsertToothRecord): Promise<ToothRecord>;
+  updateToothRecord(id: number, record: Partial<InsertToothRecord>): Promise<ToothRecord | undefined>;
+  deleteToothRecord(id: number): Promise<boolean>;
+  
+  // Medical Notes
+  getPatientMedicalNotes(patientId: number): Promise<MedicalNote[]>;
+  createMedicalNote(note: { patientId: number; title: string; content: string; noteType: string }): Promise<MedicalNote>;
+  deleteMedicalNote(id: number): Promise<boolean>;
+  
+  // Treatment History
+  getPatientTreatmentHistory(patientId: number): Promise<TreatmentHistory[]>;
+  createTreatmentHistory(treatment: { 
+    patientId: number; 
+    treatmentType: string; 
+    description: string; 
+    toothNumbers?: string; 
+    duration: number; 
+    cost: number; 
+    notes?: string; 
+  }): Promise<TreatmentHistory>;
+  
+  // Payment Records
+  getPatientPaymentRecords(patientId: number): Promise<PaymentRecord[]>;
+  createPaymentRecord(payment: {
+    patientId: number;
+    appointmentId?: number;
+    treatmentId?: number;
+    amount: number;
+    paymentMethod: string;
+    notes?: string;
+  }): Promise<PaymentRecord>;
+  
   // Dashboard
   getDashboardStats(): Promise<DashboardStats>;
 }
@@ -44,14 +83,40 @@ export class MemStorage implements IStorage {
   private appointments: Map<number, Appointment>;
   private patientFiles: Map<number, PatientFile>;
   private medicalConditions: Map<number, MedicalCondition>;
-  private idCounters: { patients: number; appointments: number; files: number; conditions: number };
+  private toothRecords: Map<number, ToothRecord>;
+  private medicalNotes: Map<number, MedicalNote>;
+  private treatmentHistory: Map<number, TreatmentHistory>;
+  private paymentRecords: Map<number, PaymentRecord>;
+  private idCounters: { 
+    patients: number; 
+    appointments: number; 
+    files: number; 
+    conditions: number; 
+    teeth: number; 
+    notes: number; 
+    treatments: number; 
+    payments: number; 
+  };
 
   constructor() {
     this.patients = new Map();
     this.appointments = new Map();
     this.patientFiles = new Map();
     this.medicalConditions = new Map();
-    this.idCounters = { patients: 1, appointments: 1, files: 1, conditions: 1 };
+    this.toothRecords = new Map();
+    this.medicalNotes = new Map();
+    this.treatmentHistory = new Map();
+    this.paymentRecords = new Map();
+    this.idCounters = { 
+      patients: 1, 
+      appointments: 1, 
+      files: 1, 
+      conditions: 1, 
+      teeth: 1, 
+      notes: 1, 
+      treatments: 1, 
+      payments: 1 
+    };
     
     this.seedData();
   }
@@ -303,6 +368,126 @@ export class MemStorage implements IStorage {
 
   async getMedicalConditions(): Promise<MedicalCondition[]> {
     return Array.from(this.medicalConditions.values());
+  }
+
+  // Tooth Records (Odontogram) methods
+  async getPatientToothRecords(patientId: number): Promise<ToothRecord[]> {
+    return Array.from(this.toothRecords.values()).filter(record => record.patientId === patientId);
+  }
+
+  async createToothRecord(record: InsertToothRecord): Promise<ToothRecord> {
+    const id = this.idCounters.teeth++;
+    const newRecord: ToothRecord = {
+      ...record,
+      id,
+      surfaces: record.surfaces || null,
+      treatment: record.treatment || null,
+      treatmentDate: record.treatmentDate || null,
+      notes: record.notes || null,
+      appointmentId: record.appointmentId || null,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.toothRecords.set(id, newRecord);
+    return newRecord;
+  }
+
+  async updateToothRecord(id: number, record: Partial<InsertToothRecord>): Promise<ToothRecord | undefined> {
+    const existingRecord = this.toothRecords.get(id);
+    if (!existingRecord) return undefined;
+
+    const updatedRecord: ToothRecord = {
+      ...existingRecord,
+      ...record,
+      id,
+      updatedAt: new Date()
+    };
+    this.toothRecords.set(id, updatedRecord);
+    return updatedRecord;
+  }
+
+  async deleteToothRecord(id: number): Promise<boolean> {
+    return this.toothRecords.delete(id);
+  }
+
+  // Medical Notes Methods
+  async getPatientMedicalNotes(patientId: number): Promise<MedicalNote[]> {
+    return Array.from(this.medicalNotes.values())
+      .filter(note => note.patientId === patientId)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
+  async createMedicalNote(noteData: { patientId: number; title: string; content: string; noteType: string }): Promise<MedicalNote> {
+    const note: MedicalNote = {
+      id: this.idCounters.notes++,
+      ...noteData,
+      createdBy: "Dr. Smith",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.medicalNotes.set(note.id, note);
+    return note;
+  }
+
+  async deleteMedicalNote(id: number): Promise<boolean> {
+    return this.medicalNotes.delete(id);
+  }
+
+  // Treatment History Methods
+  async getPatientTreatmentHistory(patientId: number): Promise<TreatmentHistory[]> {
+    return Array.from(this.treatmentHistory.values())
+      .filter(treatment => treatment.patientId === patientId)
+      .sort((a, b) => new Date(b.performedAt).getTime() - new Date(a.performedAt).getTime());
+  }
+
+  async createTreatmentHistory(treatmentData: { 
+    patientId: number; 
+    treatmentType: string; 
+    description: string; 
+    toothNumbers?: string; 
+    duration: number; 
+    cost: number; 
+    notes?: string; 
+  }): Promise<TreatmentHistory> {
+    const treatment: TreatmentHistory = {
+      id: this.idCounters.treatments++,
+      ...treatmentData,
+      appointmentId: null,
+      status: "completed",
+      performedBy: "Dr. Smith",
+      performedAt: new Date(),
+      createdAt: new Date(),
+    };
+    this.treatmentHistory.set(treatment.id, treatment);
+    return treatment;
+  }
+
+  // Payment Records Methods
+  async getPatientPaymentRecords(patientId: number): Promise<PaymentRecord[]> {
+    return Array.from(this.paymentRecords.values())
+      .filter(payment => payment.patientId === patientId)
+      .sort((a, b) => new Date(b.paidAt).getTime() - new Date(a.paidAt).getTime());
+  }
+
+  async createPaymentRecord(paymentData: {
+    patientId: number;
+    appointmentId?: number;
+    treatmentId?: number;
+    amount: number;
+    paymentMethod: string;
+    notes?: string;
+  }): Promise<PaymentRecord> {
+    const payment: PaymentRecord = {
+      id: this.idCounters.payments++,
+      ...paymentData,
+      appointmentId: paymentData.appointmentId || null,
+      treatmentId: paymentData.treatmentId || null,
+      paymentStatus: "completed",
+      paidAt: new Date(),
+      createdAt: new Date(),
+    };
+    this.paymentRecords.set(payment.id, payment);
+    return payment;
   }
 
   async getDashboardStats(): Promise<DashboardStats> {

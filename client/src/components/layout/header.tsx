@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Search, Bell, Plus, Menu } from "lucide-react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
+import { ModeToggle } from "@/components/ui/mode-toggle";
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -12,9 +13,17 @@ interface HeaderProps {
 
 export function Header({ onMenuClick, title }: HeaderProps) {
   const [searchTerm, setSearchTerm] = useState("");
+  const [, setLocation] = useLocation();
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchTerm.trim()) {
+      setLocation(`/patients?search=${encodeURIComponent(searchTerm.trim())}`);
+    }
+  };
 
   return (
-    <header className="bg-white border-b border-gray-200 px-6 py-4">
+    <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <Button
@@ -25,12 +34,12 @@ export function Header({ onMenuClick, title }: HeaderProps) {
           >
             <Menu className="h-4 w-4" />
           </Button>
-          <h1 className="text-2xl font-semibold text-gray-900">{title}</h1>
+          <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">{title}</h1>
         </div>
         
         <div className="flex items-center space-x-4">
           {/* Search */}
-          <div className="relative hidden md:block">
+          <form onSubmit={handleSearch} className="relative hidden md:block">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
               type="text"
@@ -39,7 +48,7 @@ export function Header({ onMenuClick, title }: HeaderProps) {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-64 pl-10"
             />
-          </div>
+          </form>
           
           {/* Notifications */}
           <Button variant="ghost" size="sm" className="relative">
@@ -51,6 +60,9 @@ export function Header({ onMenuClick, title }: HeaderProps) {
               3
             </Badge>
           </Button>
+          
+          {/* Theme Toggle */}
+          <ModeToggle />
           
           {/* New Patient Button */}
           <Link href="/patients/create">

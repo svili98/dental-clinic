@@ -1,3 +1,6 @@
+/* Inter font import */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -54,6 +57,14 @@
   --destructive-foreground: hsl(0, 0%, 98%);
   --ring: hsl(240, 4.9%, 83.9%);
   --radius: 0.5rem;
+  
+  /* Dark theme medical colors */
+  --medical-primary: hsl(207, 90%, 54%);
+  --medical-success: hsl(122, 39%, 49%);
+  --medical-warning: hsl(45, 93%, 47%);
+  --medical-error: hsl(0, 65%, 51%);
+  --medical-bg: hsl(240, 10%, 3.9%);
+  --medical-sidebar: hsl(240, 10%, 3.9%);
 }
 
 @layer base {
@@ -121,6 +132,3 @@
     background-color: var(--medical-primary);
   }
 }
-
-/* Inter font import */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');

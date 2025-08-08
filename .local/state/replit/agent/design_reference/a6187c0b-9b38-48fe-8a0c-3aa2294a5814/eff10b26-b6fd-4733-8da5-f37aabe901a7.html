@@ -1,0 +1,857 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dental Clinic Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'inter': ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: {
+                            50: '#e6f7ff',
+                            100: '#bae7ff',
+                            500: '#1890ff',
+                            600: '#096dd9',
+                            700: '#0050b3',
+                        },
+                        success: {
+                            500: '#52c41a',
+                            600: '#389e0d',
+                        },
+                        warning: {
+                            500: '#faad14',
+                        },
+                        error: {
+                            500: '#ff4d4f',
+                        },
+                        gray: {
+                            50: '#fafafa',
+                            100: '#f5f5f5',
+                            200: '#f0f0f0',
+                            300: '#d9d9d9',
+                            400: '#bfbfbf',
+                            500: '#8c8c8c',
+                            600: '#595959',
+                            700: '#434343',
+                            800: '#262626',
+                            900: '#141414',
+                        }
+                    }
+                }
+            }
+        };
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .sidebar-transition {
+            transition: all 0.3s ease;
+        }
+        .card-hover {
+            transition: all 0.2s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        .table-row-hover:hover {
+            background-color: #f5f5f5;
+        }
+        .status-badge {
+            @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+        }
+        .status-scheduled { @apply bg-blue-100 text-blue-800; }
+        .status-completed { @apply bg-green-100 text-green-800; }
+        .status-cancelled { @apply bg-red-100 text-red-800; }
+        .status-active { @apply bg-green-100 text-green-800; }
+    </style>
+</head>
+<body class="bg-gray-50 font-inter">
+    <div class="flex h-screen overflow-hidden">
+        <!-- @COMPONENT: Sidebar -->
+        <aside id="sidebar" class="sidebar-transition bg-white border-r border-gray-200 w-64 flex-shrink-0">
+            <div class="flex flex-col h-full">
+                <!-- Logo -->
+                <div class="flex items-center justify-center h-16 border-b border-gray-200">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 bg-primary-500 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-tooth text-white"></i>
+                        </div>
+                        <span class="text-lg font-semibold text-gray-900">DentalCare</span>
+                    </div>
+                </div>
+
+                <!-- Navigation -->
+                <nav class="flex-1 px-4 py-6 space-y-1">
+                    <a href="#" class="bg-primary-50 text-primary-600 group flex items-center px-3 py-2 text-sm font-medium rounded-md">
+                        <i class="fas fa-chart-pie mr-3 text-primary-600"></i>
+                        Dashboard
+                    </a>
+                    <a href="#" class="text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-3 py-2 text-sm font-medium rounded-md">
+                        <i class="fas fa-users mr-3"></i>
+                        Patients
+                    </a>
+                    <a href="#" class="text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-3 py-2 text-sm font-medium rounded-md">
+                        <i class="fas fa-calendar-alt mr-3"></i>
+                        Appointments
+                    </a>
+                    <a href="#" class="text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-3 py-2 text-sm font-medium rounded-md">
+                        <i class="fas fa-file-medical mr-3"></i>
+                        Medical Records
+                    </a>
+                    <a href="#" class="text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-3 py-2 text-sm font-medium rounded-md">
+                        <i class="fas fa-folder mr-3"></i>
+                        Files & Documents
+                    </a>
+                    <a href="#" class="text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-3 py-2 text-sm font-medium rounded-md">
+                        <i class="fas fa-cog mr-3"></i>
+                        Settings
+                    </a>
+                </nav>
+
+                <!-- User Profile -->
+                <div class="border-t border-gray-200 p-4">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center">
+                            <i class="fas fa-user text-white text-sm"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-gray-900 truncate" data-mock="true">Dr. Sarah Johnson</p>
+                            <p class="text-xs text-gray-500 truncate">Dentist</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+        <!-- @END_COMPONENT: Sidebar -->
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- @COMPONENT: Header -->
+            <header class="bg-white border-b border-gray-200 px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <button id="sidebarToggle" class="text-gray-500 hover:text-gray-700 lg:hidden">
+                            <i class="fas fa-bars"></i>
+                        </button>
+                        <h1 class="text-2xl font-semibold text-gray-900">Dashboard</h1>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <!-- Search -->
+                        <div class="relative hidden md:block">
+                            <input type="text" placeholder="Search patients..." class="w-64 px-4 py-2 pl-10 pr-4 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                            <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                        </div>
+                        <!-- Notifications -->
+                        <button class="relative p-2 text-gray-500 hover:text-gray-700">
+                            <i class="fas fa-bell"></i>
+                            <span class="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full"></span>
+                        </button>
+                        <!-- New Patient Button -->
+                        <button class="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium">
+                            <i class="fas fa-plus mr-2"></i>
+                            New Patient
+                        </button>
+                    </div>
+                </div>
+            </header>
+            <!-- @END_COMPONENT: Header -->
+
+            <!-- @COMPONENT: MainContent -->
+            <main class="flex-1 overflow-auto bg-gray-50">
+                <div class="p-6">
+                    <!-- Stats Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <div class="bg-white rounded-lg shadow-sm p-6 card-hover">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-600">Total Patients</p>
+                                    <p class="text-3xl font-bold text-gray-900" data-bind="stats.totalPatients">1,247</p>
+                                    <p class="text-sm text-success-500">+12% from last month</p>
+                                </div>
+                                <div class="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-users text-primary-500 text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-lg shadow-sm p-6 card-hover">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-600">Today's Appointments</p>
+                                    <p class="text-3xl font-bold text-gray-900" data-bind="stats.todayAppointments">23</p>
+                                    <p class="text-sm text-warning-500">5 pending</p>
+                                </div>
+                                <div class="w-12 h-12 bg-success-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-calendar-check text-success-500 text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-lg shadow-sm p-6 card-hover">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-600">Files Uploaded</p>
+                                    <p class="text-3xl font-bold text-gray-900" data-bind="stats.filesUploaded">4,893</p>
+                                    <p class="text-sm text-primary-500">+8% from last week</p>
+                                </div>
+                                <div class="w-12 h-12 bg-warning-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-file-medical text-warning-500 text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-lg shadow-sm p-6 card-hover">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-600">Revenue (Month)</p>
+                                    <p class="text-3xl font-bold text-gray-900" data-bind="stats.monthlyRevenue">$32,849</p>
+                                    <p class="text-sm text-success-500">+15% from last month</p>
+                                </div>
+                                <div class="w-12 h-12 bg-success-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-dollar-sign text-success-500 text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Main Content Grid -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Recent Patients -->
+                        <div class="lg:col-span-2">
+                            <div class="bg-white rounded-lg shadow-sm">
+                                <div class="px-6 py-4 border-b border-gray-200">
+                                    <div class="flex items-center justify-between">
+                                        <h3 class="text-lg font-semibold text-gray-900">Recent Patients</h3>
+                                        <button class="text-primary-500 hover:text-primary-600 text-sm font-medium">View All</button>
+                                    </div>
+                                </div>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Patient</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Visit</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-white divide-y divide-gray-200">
+                                            <!-- @MAP: patients.map(patient => ( -->
+                                            <tr class="table-row-hover" data-mock="true">
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <div class="flex items-center">
+                                                        <div class="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
+                                                            <i class="fas fa-user text-gray-600"></i>
+                                                        </div>
+                                                        <div class="ml-3">
+                                                            <div class="text-sm font-medium text-gray-900">John Doe</div>
+                                                            <div class="text-sm text-gray-500">ID: #P001</div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <div class="text-sm text-gray-900">+1 234 567 8900</div>
+                                                    <div class="text-sm text-gray-500">john.doe@email.com</div>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Dec 15, 2024</td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <span class="status-badge status-active">Active</span>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    <button class="text-primary-500 hover:text-primary-600 mr-3">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                    <button class="text-gray-500 hover:text-gray-600">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            <tr class="table-row-hover" data-mock="true">
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <div class="flex items-center">
+                                                        <div class="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
+                                                            <i class="fas fa-user text-gray-600"></i>
+                                                        </div>
+                                                        <div class="ml-3">
+                                                            <div class="text-sm font-medium text-gray-900">Jane Smith</div>
+                                                            <div class="text-sm text-gray-500">ID: #P002</div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <div class="text-sm text-gray-900">+1 234 567 8901</div>
+                                                    <div class="text-sm text-gray-500">jane.smith@email.com</div>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Dec 14, 2024</td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <span class="status-badge status-active">Active</span>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    <button class="text-primary-500 hover:text-primary-600 mr-3">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                    <button class="text-gray-500 hover:text-gray-600">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            <tr class="table-row-hover" data-mock="true">
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <div class="flex items-center">
+                                                        <div class="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
+                                                            <i class="fas fa-user text-gray-600"></i>
+                                                        </div>
+                                                        <div class="ml-3">
+                                                            <div class="text-sm font-medium text-gray-900">Robert Johnson</div>
+                                                            <div class="text-sm text-gray-500">ID: #P003</div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <div class="text-sm text-gray-900">+1 234 567 8902</div>
+                                                    <div class="text-sm text-gray-500">robert.j@email.com</div>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Dec 13, 2024</td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <span class="status-badge status-active">Active</span>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    <button class="text-primary-500 hover:text-primary-600 mr-3">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                    <button class="text-gray-500 hover:text-gray-600">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            <!-- @END_MAP )) -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Today's Appointments -->
+                        <div>
+                            <div class="bg-white rounded-lg shadow-sm">
+                                <div class="px-6 py-4 border-b border-gray-200">
+                                    <h3 class="text-lg font-semibold text-gray-900">Today's Appointments</h3>
+                                </div>
+                                <div class="p-6 space-y-4">
+                                    <!-- @MAP: todayAppointments.map(appointment => ( -->
+                                    <div class="flex items-center space-x-3 p-3 rounded-lg border border-gray-200 hover:bg-gray-50" data-mock="true">
+                                        <div class="w-2 h-2 bg-primary-500 rounded-full"></div>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-sm font-medium text-gray-900">John Doe</p>
+                                            <p class="text-xs text-gray-500">Routine Checkup</p>
+                                        </div>
+                                        <div class="text-right">
+                                            <p class="text-sm text-gray-900">10:00 AM</p>
+                                            <span class="status-badge status-scheduled">Scheduled</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center space-x-3 p-3 rounded-lg border border-gray-200 hover:bg-gray-50" data-mock="true">
+                                        <div class="w-2 h-2 bg-success-500 rounded-full"></div>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-sm font-medium text-gray-900">Jane Smith</p>
+                                            <p class="text-xs text-gray-500">Cleaning</p>
+                                        </div>
+                                        <div class="text-right">
+                                            <p class="text-sm text-gray-900">11:30 AM</p>
+                                            <span class="status-badge status-completed">Completed</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center space-x-3 p-3 rounded-lg border border-gray-200 hover:bg-gray-50" data-mock="true">
+                                        <div class="w-2 h-2 bg-warning-500 rounded-full"></div>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-sm font-medium text-gray-900">Robert Johnson</p>
+                                            <p class="text-xs text-gray-500">Root Canal</p>
+                                        </div>
+                                        <div class="text-right">
+                                            <p class="text-sm text-gray-900">2:00 PM</p>
+                                            <span class="status-badge status-scheduled">Scheduled</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center space-x-3 p-3 rounded-lg border border-gray-200 hover:bg-gray-50" data-mock="true">
+                                        <div class="w-2 h-2 bg-error-500 rounded-full"></div>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-sm font-medium text-gray-900">Emily Davis</p>
+                                            <p class="text-xs text-gray-500">Consultation</p>
+                                        </div>
+                                        <div class="text-right">
+                                            <p class="text-sm text-gray-900">3:30 PM</p>
+                                            <span class="status-badge status-cancelled">Cancelled</span>
+                                        </div>
+                                    </div>
+                                    <!-- @END_MAP )) -->
+                                </div>
+                                <div class="px-6 py-4 border-t border-gray-200">
+                                    <button class="w-full text-center text-primary-500 hover:text-primary-600 text-sm font-medium">
+                                        View Full Calendar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Patient Management Section -->
+                    <div class="mt-8 bg-white rounded-lg shadow-sm">
+                        <div class="px-6 py-4 border-b border-gray-200">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-lg font-semibold text-gray-900">Patient Management</h3>
+                                <div class="flex space-x-3">
+                                    <button class="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium">
+                                        <i class="fas fa-plus mr-2"></i>
+                                        Add Patient
+                                    </button>
+                                    <button class="border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium">
+                                        <i class="fas fa-download mr-2"></i>
+                                        Export
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <!-- Search and Filters -->
+                            <div class="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0 mb-6">
+                                <div class="flex items-center space-x-4">
+                                    <div class="relative">
+                                        <input type="text" placeholder="Search patients..." class="w-80 px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                                        <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                                    </div>
+                                    <select class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
+                                        <option>All Status</option>
+                                        <option>Active</option>
+                                        <option>Inactive</option>
+                                    </select>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-sm text-gray-500">Showing 1-10 of 1,247 patients</span>
+                                </div>
+                            </div>
+
+                            <!-- Patient Table -->
+                            <div class="overflow-x-auto">
+                                <table class="w-full">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                <input type="checkbox" class="rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+                                            </th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Patient</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date of Birth</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Visit</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-200">
+                                        <!-- @MAP: patients.map(patient => ( -->
+                                        <tr class="table-row-hover" data-mock="true">
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <input type="checkbox" class="rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="flex items-center">
+                                                    <div class="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
+                                                        <i class="fas fa-user text-gray-600"></i>
+                                                    </div>
+                                                    <div class="ml-3">
+                                                        <div class="text-sm font-medium text-gray-900">John Doe</div>
+                                                        <div class="text-sm text-gray-500">ID: #P001 • JMBG: 1234567890123</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="text-sm text-gray-900">+1 234 567 8900</div>
+                                                <div class="text-sm text-gray-500">john.doe@email.com</div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Jan 15, 1985</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Dec 15, 2024</td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="status-badge status-active">Active</span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                <div class="flex items-center space-x-2">
+                                                    <button class="text-primary-500 hover:text-primary-600" title="View Details">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                    <button class="text-gray-500 hover:text-gray-600" title="Edit">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button class="text-gray-500 hover:text-gray-600" title="Files">
+                                                        <i class="fas fa-folder"></i>
+                                                    </button>
+                                                    <button class="text-gray-500 hover:text-gray-600" title="More">
+                                                        <i class="fas fa-ellipsis-v"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr class="table-row-hover" data-mock="true">
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <input type="checkbox" class="rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="flex items-center">
+                                                    <div class="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
+                                                        <i class="fas fa-user text-gray-600"></i>
+                                                    </div>
+                                                    <div class="ml-3">
+                                                        <div class="text-sm font-medium text-gray-900">Jane Smith</div>
+                                                        <div class="text-sm text-gray-500">ID: #P002 • JMBG: 1234567890124</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="text-sm text-gray-900">+1 234 567 8901</div>
+                                                <div class="text-sm text-gray-500">jane.smith@email.com</div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Mar 22, 1992</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Dec 14, 2024</td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="status-badge status-active">Active</span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                <div class="flex items-center space-x-2">
+                                                    <button class="text-primary-500 hover:text-primary-600" title="View Details">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                    <button class="text-gray-500 hover:text-gray-600" title="Edit">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button class="text-gray-500 hover:text-gray-600" title="Files">
+                                                        <i class="fas fa-folder"></i>
+                                                    </button>
+                                                    <button class="text-gray-500 hover:text-gray-600" title="More">
+                                                        <i class="fas fa-ellipsis-v"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <!-- @END_MAP )) -->
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Pagination -->
+                            <div class="flex items-center justify-between mt-6">
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-sm text-gray-500">Show</span>
+                                    <select class="px-3 py-1 border border-gray-300 rounded text-sm">
+                                        <option>10</option>
+                                        <option>25</option>
+                                        <option>50</option>
+                                    </select>
+                                    <span class="text-sm text-gray-500">per page</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <button class="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50 disabled:opacity-50" disabled>
+                                        Previous
+                                    </button>
+                                    <button class="px-3 py-1 bg-primary-500 text-white rounded text-sm">1</button>
+                                    <button class="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50">2</button>
+                                    <button class="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50">3</button>
+                                    <span class="px-2 text-gray-500">...</span>
+                                    <button class="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50">125</button>
+                                    <button class="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50">
+                                        Next
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- File Upload Section -->
+                    <div class="mt-8 bg-white rounded-lg shadow-sm">
+                        <div class="px-6 py-4 border-b border-gray-200">
+                            <h3 class="text-lg font-semibold text-gray-900">Patient Files & Documents</h3>
+                        </div>
+                        <div class="p-6">
+                            <!-- File Upload Area -->
+                            <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-primary-500 transition-colors">
+                                <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-4"></i>
+                                <h4 class="text-lg font-medium text-gray-900 mb-2">Upload Patient Files</h4>
+                                <p class="text-sm text-gray-500 mb-4">Drag and drop files here, or click to browse</p>
+                                <p class="text-xs text-gray-400">Supports: Images (JPG, PNG, TIFF), Documents (PDF, DOC), Medical Images (DICOM), 3D Models (STL), Archives (ZIP)</p>
+                                <button class="mt-4 bg-primary-500 hover:bg-primary-600 text-white px-6 py-2 rounded-lg text-sm font-medium">
+                                    Choose Files
+                                </button>
+                                <!-- @FUNCTIONALITY: This file upload should support drag and drop, progress tracking, and multiple file formats -->
+                            </div>
+
+                            <!-- File List -->
+                            <div class="mt-6">
+                                <h4 class="text-sm font-medium text-gray-900 mb-4">Recent Files</h4>
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    <!-- @MAP: patientFiles.map(file => ( -->
+                                    <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow" data-mock="true">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-file-image text-primary-500"></i>
+                                            </div>
+                                            <div class="flex-1 min-w-0">
+                                                <p class="text-sm font-medium text-gray-900 truncate">dental_xray_001.jpg</p>
+                                                <p class="text-xs text-gray-500">2.4 MB • Uploaded Dec 15, 2024</p>
+                                                <p class="text-xs text-gray-500">Patient: John Doe</p>
+                                            </div>
+                                        </div>
+                                        <div class="mt-3 flex items-center space-x-2">
+                                            <button class="text-primary-500 hover:text-primary-600 text-xs">
+                                                <i class="fas fa-eye mr-1"></i> View
+                                            </button>
+                                            <button class="text-gray-500 hover:text-gray-600 text-xs">
+                                                <i class="fas fa-download mr-1"></i> Download
+                                            </button>
+                                            <button class="text-red-500 hover:text-red-600 text-xs">
+                                                <i class="fas fa-trash mr-1"></i> Delete
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow" data-mock="true">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-12 h-12 bg-success-100 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-file-pdf text-success-500"></i>
+                                            </div>
+                                            <div class="flex-1 min-w-0">
+                                                <p class="text-sm font-medium text-gray-900 truncate">treatment_plan.pdf</p>
+                                                <p class="text-xs text-gray-500">1.8 MB • Uploaded Dec 14, 2024</p>
+                                                <p class="text-xs text-gray-500">Patient: Jane Smith</p>
+                                            </div>
+                                        </div>
+                                        <div class="mt-3 flex items-center space-x-2">
+                                            <button class="text-primary-500 hover:text-primary-600 text-xs">
+                                                <i class="fas fa-eye mr-1"></i> View
+                                            </button>
+                                            <button class="text-gray-500 hover:text-gray-600 text-xs">
+                                                <i class="fas fa-download mr-1"></i> Download
+                                            </button>
+                                            <button class="text-red-500 hover:text-red-600 text-xs">
+                                                <i class="fas fa-trash mr-1"></i> Delete
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow" data-mock="true">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-12 h-12 bg-warning-100 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-cube text-warning-500"></i>
+                                            </div>
+                                            <div class="flex-1 min-w-0">
+                                                <p class="text-sm font-medium text-gray-900 truncate">tooth_model.stl</p>
+                                                <p class="text-xs text-gray-500">5.2 MB • Uploaded Dec 13, 2024</p>
+                                                <p class="text-xs text-gray-500">Patient: Robert Johnson</p>
+                                            </div>
+                                        </div>
+                                        <div class="mt-3 flex items-center space-x-2">
+                                            <button class="text-primary-500 hover:text-primary-600 text-xs">
+                                                <i class="fas fa-eye mr-1"></i> View
+                                            </button>
+                                            <button class="text-gray-500 hover:text-gray-600 text-xs">
+                                                <i class="fas fa-download mr-1"></i> Download
+                                            </button>
+                                            <button class="text-red-500 hover:text-red-600 text-xs">
+                                                <i class="fas fa-trash mr-1"></i> Delete
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <!-- @END_MAP )) -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+            <!-- @END_COMPONENT: MainContent -->
+        </div>
+    </div>
+
+    <!-- @COMPONENT: Modal - New Patient Form -->
+    <div id="newPatientModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-gray-900">Add New Patient</h3>
+                    <button class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <form class="p-6 space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">First Name *</label>
+                        <input type="text" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Last Name *</label>
+                        <input type="text" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Phone *</label>
+                        <input type="tel" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                        <input type="email" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Date of Birth *</label>
+                        <input type="date" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Gender *</label>
+                        <select required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                            <option value="">Select Gender</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">JMBG *</label>
+                        <input type="text" required maxlength="13" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Address</label>
+                        <textarea rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"></textarea>
+                    </div>
+                </div>
+                <div class="flex justify-end space-x-3 pt-6">
+                    <button type="button" class="px-4 py-2 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg">
+                        Add Patient
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: Modal -->
+
+    <script>
+        (() => {
+            // TODO: Implement business logic, API calls, and state management
+            
+            // Sidebar toggle functionality
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebar = document.getElementById('sidebar');
+            
+            if (sidebarToggle && sidebar) {
+                sidebarToggle.addEventListener('click', () => {
+                    sidebar.classList.toggle('-translate-x-full');
+                    sidebar.classList.toggle('lg:translate-x-0');
+                });
+            }
+            
+            // Mock notification badge animation
+            const notificationBell = document.querySelector('.fa-bell');
+            if (notificationBell) {
+                const badge = notificationBell.parentElement.querySelector('span');
+                setInterval(() => {
+                    if (badge) {
+                        badge.classList.toggle('animate-pulse');
+                    }
+                }, 3000);
+            }
+            
+            // Mock real-time updates for dashboard stats
+            const updateStats = () => {
+                const elements = document.querySelectorAll('[data-bind^="stats."]');
+                elements.forEach(el => {
+                    const currentValue = parseInt(el.textContent.replace(/[^0-9]/g, ''));
+                    // Simulate small random changes
+                    const change = Math.floor(Math.random() * 3) - 1;
+                    const newValue = Math.max(0, currentValue + change);
+                    
+                    if (el.getAttribute('data-bind') === 'stats.todayAppointments') {
+                        el.textContent = newValue.toString();
+                    }
+                });
+            };
+            
+            // Update stats every 30 seconds
+            setInterval(updateStats, 30000);
+            
+            // Mock form validation
+            const forms = document.querySelectorAll('form');
+            forms.forEach(form => {
+                form.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    
+                    // Basic validation
+                    const requiredFields = form.querySelectorAll('[required]');
+                    let isValid = true;
+                    
+                    requiredFields.forEach(field => {
+                        if (!field.value.trim()) {
+                            field.classList.add('border-red-500');
+                            isValid = false;
+                        } else {
+                            field.classList.remove('border-red-500');
+                        }
+                    });
+                    
+                    if (isValid) {
+                        // Show success message (mock)
+                        const successDiv = document.createElement('div');
+                        successDiv.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+                        successDiv.textContent = 'Patient added successfully!';
+                        document.body.appendChild(successDiv);
+                        
+                        setTimeout(() => {
+                            successDiv.remove();
+                        }, 3000);
+                        
+                        // Reset form
+                        form.reset();
+                    }
+                });
+            });
+            
+            // File upload simulation
+            const fileInputs = document.querySelectorAll('input[type="file"]');
+            fileInputs.forEach(input => {
+                input.addEventListener('change', (e) => {
+                    const files = e.target.files;
+                    if (files.length > 0) {
+                        // Mock file upload progress
+                        console.log(`Uploading ${files.length} file(s)...`);
+                        // TODO: Implement actual file upload with progress tracking
+                    }
+                });
+            });
+            
+            // Responsive table handling
+            const handleTableResponsive = () => {
+                const tables = document.querySelectorAll('table');
+                tables.forEach(table => {
+                    const wrapper = table.closest('.overflow-x-auto');
+                    if (wrapper && window.innerWidth < 768) {
+                        wrapper.style.overflowX = 'scroll';
+                    }
+                });
+            };
+            
+            window.addEventListener('resize', handleTableResponsive);
+            handleTableResponsive();
+        })();
+    </script>
+</body>
+</html>

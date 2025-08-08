@@ -4,16 +4,22 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { FileList } from "@/components/files/file-list";
 import { FileUpload } from "@/components/files/file-upload";
+import { Odontogram } from "@/components/patients/odontogram";
+import { MedicalNotes } from "@/components/patients/medical-notes";
+import { TreatmentHistoryPanel } from "@/components/patients/treatment-history-panel";
+import { PaymentRecordModal } from "@/components/patients/payment-record-modal";
 import { usePatient } from "@/hooks/use-patients";
 import { usePatientFiles } from "@/hooks/use-files";
 import { useAppointments } from "@/hooks/use-appointments";
 import { Link, useParams } from "wouter";
+import { useState } from "react";
 import { ArrowLeft, Edit, Calendar, FileText, Phone, Mail, MapPin } from "lucide-react";
 import { format } from "date-fns";
 
 export default function PatientDetailsPage() {
   const params = useParams();
   const patientId = parseInt(params.id || "0");
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   
   const { data: patient, isLoading: patientLoading } = usePatient(patientId);
   const { data: files } = usePatientFiles(patientId);
@@ -64,10 +70,10 @@ export default function PatientDetailsPage() {
               </Button>
             </Link>
             <div>
-              <h1 className="text-2xl font-semibold text-gray-900">
+              <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
                 {patient.firstName} {patient.lastName}
               </h1>
-              <p className="text-gray-500">Patient ID: #{patient.id}</p>
+              <p className="text-gray-500 dark:text-gray-400">Patient ID: #{patient.id}</p>
             </div>
           </div>
           <div className="flex space-x-3">
@@ -87,6 +93,32 @@ export default function PatientDetailsPage() {
         {/* Patient Information */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
+            {/* Medical Condition Alert */}
+            {(patient as any).medicalConditions && (patient as any).medicalConditions.length > 0 && (
+              <Card className="border-orange-200 bg-orange-50 dark:bg-orange-950 dark:border-orange-800">
+                <CardHeader>
+                  <CardTitle className="text-orange-800 dark:text-orange-200 flex items-center">
+                    <svg className="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    Medical Conditions Alert
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-2">
+                    {((patient as any).medicalConditions as string[]).map((condition: string, index: number) => (
+                      <Badge key={index} variant="outline" className="bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200">
+                        {condition}
+                      </Badge>
+                    ))}
+                  </div>
+                  <p className="text-sm text-orange-700 dark:text-orange-300 mt-2">
+                    Please review medical conditions before treatment
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Basic Information */}
             <Card>
               <CardHeader>
@@ -358,7 +390,11 @@ export default function PatientDetailsPage() {
                   </div>
                 </div>
                 <div className="pt-3">
-                  <Button size="sm" className="w-full bg-green-600 hover:bg-green-700">
+                  <Button 
+                    size="sm" 
+                    className="w-full bg-green-600 hover:bg-green-700"
+                    onClick={() => setPaymentModalOpen(true)}
+                  >
                     Record Payment
                   </Button>
                 </div>
@@ -390,12 +426,30 @@ export default function PatientDetailsPage() {
           </div>
         </div>
 
+        {/* Odontogram Section */}
+        <div className="space-y-6">
+          <Odontogram patientId={patientId} />
+        </div>
+
+        {/* Medical Notes and Treatment History */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <MedicalNotes patientId={patientId} />
+          <TreatmentHistoryPanel patientId={patientId} />
+        </div>
+
         {/* Files Section */}
         <div className="space-y-6">
           <FileUpload patientId={patientId} />
           <FileList patientId={patientId} />
         </div>
       </div>
+
+      {/* Payment Record Modal */}
+      <PaymentRecordModal 
+        isOpen={paymentModalOpen}
+        onClose={() => setPaymentModalOpen(false)}
+        patientId={patientId}
+      />
     </Layout>
   );
 }

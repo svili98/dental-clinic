@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertPatientSchema, insertAppointmentSchema, insertPatientFileSchema } from "@shared/schema";
+import { insertPatientSchema, insertAppointmentSchema, insertPatientFileSchema, insertToothRecordSchema } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -170,6 +170,150 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(conditions);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch medical conditions" });
+    }
+  });
+
+  // Tooth Records (Odontogram) routes
+  app.get("/api/patients/:patientId/teeth", async (req, res) => {
+    try {
+      const patientId = parseInt(req.params.patientId);
+      const toothRecords = await storage.getPatientToothRecords(patientId);
+      res.json(toothRecords);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch tooth records" });
+    }
+  });
+
+  app.post("/api/teeth", async (req, res) => {
+    try {
+      const validatedData = insertToothRecordSchema.parse(req.body);
+      const toothRecord = await storage.createToothRecord(validatedData);
+      res.status(201).json(toothRecord);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Validation error", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create tooth record" });
+    }
+  });
+
+  app.put("/api/teeth/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = insertToothRecordSchema.partial().parse(req.body);
+      const toothRecord = await storage.updateToothRecord(id, validatedData);
+      if (!toothRecord) {
+        return res.status(404).json({ message: "Tooth record not found" });
+      }
+      res.json(toothRecord);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Validation error", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update tooth record" });
+    }
+  });
+
+  app.delete("/api/teeth/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deleteToothRecord(id);
+      if (!success) {
+        return res.status(404).json({ message: "Tooth record not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete tooth record" });
+    }
+  });
+
+  // Medical Notes routes
+  app.get("/api/patients/:patientId/medical-notes", async (req, res) => {
+    try {
+      const patientId = parseInt(req.params.patientId);
+      const notes = await storage.getPatientMedicalNotes(patientId);
+      res.json(notes);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch medical notes" });
+    }
+  });
+
+  app.post("/api/patients/:patientId/medical-notes", async (req, res) => {
+    try {
+      const patientId = parseInt(req.params.patientId);
+      const { title, content, noteType = 'general' } = req.body;
+      if (!title || !content) {
+        return res.status(400).json({ message: 'Title and content are required' });
+      }
+      const note = await storage.createMedicalNote({ patientId, title, content, noteType });
+      res.status(201).json(note);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create medical note" });
+    }
+  });
+
+  // Treatment History routes
+  app.get("/api/patients/:patientId/treatment-history", async (req, res) => {
+    try {
+      const patientId = parseInt(req.params.patientId);
+      const treatments = await storage.getPatientTreatmentHistory(patientId);
+      res.json(treatments);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch treatment history" });
+    }
+  });
+
+  app.post("/api/patients/:patientId/treatment-history", async (req, res) => {
+    try {
+      const patientId = parseInt(req.params.patientId);
+      const { treatmentType, description, toothNumbers, duration = 30, cost = 0, notes } = req.body;
+      if (!treatmentType || !description) {
+        return res.status(400).json({ message: 'Treatment type and description are required' });
+      }
+      const treatment = await storage.createTreatmentHistory({
+        patientId, 
+        treatmentType, 
+        description, 
+        toothNumbers, 
+        duration: parseInt(duration) || 30, 
+        cost: parseInt(cost) || 0, 
+        notes
+      });
+      res.status(201).json(treatment);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create treatment history" });
+    }
+  });
+
+  // Payment Records routes
+  app.post("/api/patients/:patientId/payments", async (req, res) => {
+    try {
+      const patientId = parseInt(req.params.patientId);
+      const { amount, paymentMethod = 'cash', appointmentId, treatmentId, notes } = req.body;
+      if (!amount || amount <= 0) {
+        return res.status(400).json({ message: 'Valid amount is required' });
+      }
+      const payment = await storage.createPaymentRecord({
+        patientId,
+        amount: parseInt(amount),
+        paymentMethod,
+        appointmentId: appointmentId ? parseInt(appointmentId) : undefined,
+        treatmentId: treatmentId ? parseInt(treatmentId) : undefined,
+        notes
+      });
+      res.status(201).json(payment);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create payment record" });
+    }
+  });
+
+  app.get("/api/patients/:patientId/payments", async (req, res) => {
+    try {
+      const patientId = parseInt(req.params.patientId);
+      const payments = await storage.getPatientPaymentRecords(patientId);
+      res.json(payments);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch payment records" });
     }
   });
 
