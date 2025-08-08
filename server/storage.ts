@@ -76,6 +76,20 @@ export interface IStorage {
   
   // Dashboard
   getDashboardStats(): Promise<DashboardStats>;
+  
+  // Employee Management
+  getRoles(): Promise<Role[]>;
+  getRole(id: number): Promise<Role | undefined>;
+  createRole(role: InsertRole): Promise<Role>;
+  updateRole(id: number, role: Partial<InsertRole>): Promise<Role | undefined>;
+  deleteRole(id: number): Promise<boolean>;
+
+  getEmployees(params: { search?: string; isActive?: boolean; roleId?: number }): Promise<Employee[]>;
+  getEmployee(id: number): Promise<Employee | undefined>;
+  createEmployee(employee: InsertEmployee): Promise<Employee>;
+  updateEmployee(id: number, employee: Partial<InsertEmployee>): Promise<Employee | undefined>;
+  deleteEmployee(id: number): Promise<boolean>;
+  setEmployeeStatus(id: number, isActive: boolean): Promise<Employee | undefined>;
 }
 
 export class MemStorage implements IStorage {

@@ -7,7 +7,8 @@ import { FileUpload } from "@/components/files/file-upload";
 import { OdontogramISO } from "@/components/patients/odontogram-iso";
 import { MedicalNotes } from "@/components/patients/medical-notes";
 import { TreatmentHistoryPanel } from "@/components/patients/treatment-history-panel";
-import { PaymentRecordModal } from "@/components/patients/payment-record-modal";
+import { FinancialRecordModal } from "@/components/patients/financial-record-modal";
+import { AppointmentBookingModal } from "@/components/appointments/appointment-booking-modal";
 import { usePatient } from "@/hooks/use-patients";
 import { usePatientFiles } from "@/hooks/use-files";
 import { useAppointments } from "@/hooks/use-appointments";
@@ -22,7 +23,8 @@ import { format } from "date-fns";
 export default function PatientDetailsPage() {
   const params = useParams();
   const patientId = parseInt(params.id || "0");
-  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [financialModalOpen, setFinancialModalOpen] = useState(false);
+  const [appointmentModalOpen, setAppointmentModalOpen] = useState(false);
   const { t } = useTranslation();
   
   const { data: patient, isLoading: patientLoading } = usePatient(patientId);
@@ -314,7 +316,7 @@ export default function PatientDetailsPage() {
                     <Button 
                       className="w-full bg-green-600 hover:bg-green-700" 
                       size="sm"
-                      onClick={() => setPaymentModalOpen(true)}
+                      onClick={() => setFinancialModalOpen(true)}
                     >
                       {t.recordPayment}
                     </Button>
@@ -407,10 +409,10 @@ export default function PatientDetailsPage() {
                 <div className="pt-3">
                   <Button 
                     size="sm" 
-                    className="w-full bg-green-600 hover:bg-green-700"
-                    onClick={() => setPaymentModalOpen(true)}
+                    className="w-full bg-blue-600 hover:bg-blue-700"
+                    onClick={() => setFinancialModalOpen(true)}
                   >
-                    {t.recordPayment}
+                    Financial Record
                   </Button>
                 </div>
               </CardContent>
@@ -423,9 +425,14 @@ export default function PatientDetailsPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  <Button variant="outline" className="w-full justify-start" size="sm">
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start" 
+                    size="sm"
+                    onClick={() => setAppointmentModalOpen(true)}
+                  >
                     <Calendar className="h-4 w-4 mr-2" />
-                    {t.scheduleAppointment}
+                    Schedule Appointment
                   </Button>
                   <Button variant="outline" className="w-full justify-start" size="sm">
                     <FileText className="h-4 w-4 mr-2" />
@@ -459,11 +466,19 @@ export default function PatientDetailsPage() {
         </div>
       </div>
 
-      {/* Payment Record Modal */}
-      <PaymentRecordModal 
-        isOpen={paymentModalOpen}
-        onClose={() => setPaymentModalOpen(false)}
+      {/* Financial Record Modal */}
+      <FinancialRecordModal 
+        isOpen={financialModalOpen}
+        onClose={() => setFinancialModalOpen(false)}
         patientId={patientId}
+      />
+
+      {/* Appointment Booking Modal */}
+      <AppointmentBookingModal
+        isOpen={appointmentModalOpen}
+        onClose={() => setAppointmentModalOpen(false)}
+        patientId={patientId}
+        patientName={patient ? `${patient.firstName} ${patient.lastName}` : ""}
       />
     </Layout>
   );

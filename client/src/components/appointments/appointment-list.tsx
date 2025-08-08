@@ -92,7 +92,7 @@ export function AppointmentList() {
             </div>
           )}
         </div>
-        <div className="mt-4 pt-4 border-t border-gray-200">
+        <div className="mt-4 pt-4 border-t border-gray-200 space-y-2">
           <Button variant="ghost" className="w-full text-blue-600 hover:text-blue-700">
             <Calendar className="h-4 w-4 mr-2" />
             View Full Calendar

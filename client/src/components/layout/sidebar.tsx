@@ -11,7 +11,8 @@ import {
   Folder, 
   Settings,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Stethoscope
 } from "lucide-react";
 
 
@@ -28,6 +29,7 @@ export function Sidebar({ collapsed, onCollapse }: SidebarProps) {
     { name: t.dashboard, href: "/", icon: Home },
     { name: t.patients, href: "/patients", icon: Users },
     { name: t.appointments, href: "/appointments", icon: Calendar },
+    { name: "Services", href: "/services", icon: Stethoscope },
     { name: t.medicalRecords, href: "/medical-records", icon: FileText },
     { name: t.filesDocuments, href: "/files", icon: Folder },
     { name: t.settings, href: "/settings", icon: Settings },

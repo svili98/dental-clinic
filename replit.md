@@ -8,6 +8,32 @@ Preferred communication style: Simple, everyday language.
 
 # Recent Changes
 
+## August 8, 2025 - Employee Management and Role-Based Access Control System
+- Created comprehensive employee management system with PostgreSQL database integration
+- Added roles, employees, and user sessions tables with proper relationships and foreign key constraints
+- Built complete employee management interface with search, filtering, and status management
+- Implemented role-based permission system (Administrator, Dentist, Dental Assistant, Receptionist)
+- Created tabbed settings page with General Settings, Employee Management, and Permissions sections
+- Added employee statistics dashboard showing total, active, inactive employees and roles
+- Built permission matrix showing detailed access rights for each role across all system features
+- Employee management includes profile information, role assignment, and activation/deactivation
+- All employee data stored in database with proper validation and type safety using Drizzle ORM
+- Settings page now provides comprehensive user access control and permission management
+
+## August 8, 2025 - Complete Setmore Appointment System with Calendar and Booking
+- Successfully integrated Setmore API with full mock data support for development mode
+- Enhanced appointment schema with all Setmore-specific fields (service keys, staff keys, customer data)
+- Built complete appointment booking modal with patient selection, service selection, and time slot booking
+- Implemented comprehensive calendar view with monthly navigation and appointment visualization
+- Added services management page showing all available dental treatments and healthcare providers
+- Created tabbed appointments page with both calendar and list views
+- Updated patient details page with integrated appointment booking functionality
+- Fixed Setmore integration to use mock data in development with clear production switch comments
+- Added services navigation link to sidebar for easy access to treatment options
+- Created comprehensive financial recording system supporting both payments and outstanding balances
+- Fixed odontogram layout to match proper FDI World Dental Federation numbering system
+- All appointment booking functionality working with proper data flow and calendar integration
+
 ## August 7, 2025 - Comprehensive Odontogram Implementation
 - Successfully migrated project from Replit Agent to Replit environment
 - Added complete odontogram (dental chart) functionality to patient details:

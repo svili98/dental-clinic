@@ -10,10 +10,11 @@ import Dashboard from "@/pages/dashboard";
 import PatientsPage from "@/pages/patients/patients";
 import CreatePatientPage from "@/pages/patients/create-patient";
 import PatientDetailsPage from "@/pages/patients/patient-details";
-import AppointmentsPage from "@/pages/appointments/appointments";
+import AppointmentsPage from "@/pages/appointments/appointments-new";
 import FilesPage from "@/pages/files/files";
 import MedicalRecordsPage from "@/pages/medical-records/medical-records";
 import SettingsPage from "@/pages/settings/settings";
+import ServicesPage from "@/pages/appointments/services";
 
 function Router() {
   return (
@@ -24,6 +25,7 @@ function Router() {
       <Route path="/patients/:id" component={PatientDetailsPage} />
       <Route path="/patients/:id/edit" component={CreatePatientPage} />
       <Route path="/appointments" component={AppointmentsPage} />
+      <Route path="/services" component={ServicesPage} />
       <Route path="/files" component={FilesPage} />
       <Route path="/medical-records" component={MedicalRecordsPage} />
       <Route path="/settings" component={SettingsPage} />

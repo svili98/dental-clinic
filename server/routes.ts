@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertPatientSchema, insertAppointmentSchema, insertPatientFileSchema, insertToothRecordSchema } from "@shared/schema";
+import { getSetmoreService } from "./services/setmore-service";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -314,6 +315,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(payments);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch payment records" });
+    }
+  });
+
+  // Setmore API Integration Routes
+  const setmoreService = getSetmoreService();
+
+  // Get all services
+  app.get("/api/setmore/services", async (req, res) => {
+    try {
+      const result = await setmoreService.getAllServices();
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch services" });
+    }
+  });
+
+  // Get all staff
+  app.get("/api/setmore/staff", async (req, res) => {
+    try {
+      const result = await setmoreService.getAllStaff();
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch staff" });
+    }
+  });
+
+  // Get available time slots
+  app.post("/api/setmore/slots", async (req, res) => {
+    try {
+      const { staff_key, service_key, selected_date, slot_limit } = req.body;
+      const result = await setmoreService.getAvailableSlots({
+        staff_key,
+        service_key,
+        selected_date,
+        slot_limit: slot_limit || 20
+      });
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch time slots" });
+    }
+  });
+
+  // Create Setmore customer and appointment
+  app.post("/api/appointments/setmore", async (req, res) => {
+    try {
+      const appointmentData = insertAppointmentSchema.parse(req.body);
+      
+      // Get patient data to create Setmore customer
+      const patient = await storage.getPatient(appointmentData.patientId);
+      if (!patient) {
+        return res.status(404).json({ message: "Patient not found" });
+      }
+
+      // Create customer in Setmore (or get existing)
+      let customerKey = patient.email ? `customer_${patient.email}` : `customer_${patient.id}`;
+      
+      // For development, we'll create the appointment directly in our system
+      // In production, this would create the appointment in Setmore first
+      const appointment = await storage.createAppointment({
+        ...appointmentData,
+        customerKey
+      });
+
+      res.status(201).json(appointment);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Validation error", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create appointment" });
     }
   });
 

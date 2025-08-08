@@ -392,31 +392,33 @@ export function OdontogramISO({ patientId, patientAge }: OdontogramISOProps) {
             </TabsList>
             
             <TabsContent value="adult" className="space-y-6 mt-6">
-              {/* Adult Upper Jaw */}
+              {/* Adult Upper Jaw - FDI Layout */}
               <div>
-                <h3 className="text-sm font-medium text-gray-600 mb-2">Upper Jaw (Maxilla)</h3>
-                <div className="flex justify-center gap-8">
-                  <div>
-                    <p className="text-xs text-gray-400 mb-1">Right</p>
-                    {renderTeethRow([...ADULT_TEETH_ISO.upper.right].reverse())}
+                <h3 className="text-sm font-medium text-gray-600 mb-4">Upper Jaw (Maxilla)</h3>
+                <div className="flex justify-center items-center gap-2">
+                  <div className="text-right">
+                    <p className="text-xs text-gray-400 mb-1">Right Upper</p>
+                    {renderTeethRow(ADULT_TEETH_ISO.upper.right)}
                   </div>
-                  <div>
-                    <p className="text-xs text-gray-400 mb-1">Left</p>
+                  <div className="w-px h-12 bg-gray-300 mx-4"></div>
+                  <div className="text-left">
+                    <p className="text-xs text-gray-400 mb-1">Left Upper</p>
                     {renderTeethRow(ADULT_TEETH_ISO.upper.left)}
                   </div>
                 </div>
               </div>
               
-              {/* Adult Lower Jaw */}
+              {/* Adult Lower Jaw - FDI Layout */}
               <div>
-                <h3 className="text-sm font-medium text-gray-600 mb-2">Lower Jaw (Mandible)</h3>
-                <div className="flex justify-center gap-8">
-                  <div>
-                    <p className="text-xs text-gray-400 mb-1">Right</p>
-                    {renderTeethRow([...ADULT_TEETH_ISO.lower.right].reverse())}
+                <h3 className="text-sm font-medium text-gray-600 mb-4">Lower Jaw (Mandible)</h3>
+                <div className="flex justify-center items-center gap-2">
+                  <div className="text-right">
+                    <p className="text-xs text-gray-400 mb-1">Right Lower</p>
+                    {renderTeethRow(ADULT_TEETH_ISO.lower.right)}
                   </div>
-                  <div>
-                    <p className="text-xs text-gray-400 mb-1">Left</p>
+                  <div className="w-px h-12 bg-gray-300 mx-4"></div>
+                  <div className="text-left">
+                    <p className="text-xs text-gray-400 mb-1">Left Lower</p>
                     {renderTeethRow(ADULT_TEETH_ISO.lower.left)}
                   </div>
                 </div>
@@ -424,31 +426,33 @@ export function OdontogramISO({ patientId, patientAge }: OdontogramISOProps) {
             </TabsContent>
             
             <TabsContent value="child" className="space-y-6 mt-6">
-              {/* Child Upper Jaw */}
+              {/* Child Upper Jaw - FDI Layout */}
               <div>
-                <h3 className="text-sm font-medium text-gray-600 mb-2">Upper Jaw (Maxilla)</h3>
-                <div className="flex justify-center gap-8">
-                  <div>
-                    <p className="text-xs text-gray-400 mb-1">Right</p>
-                    {renderTeethRow([...CHILDREN_TEETH_ISO.upper.right].reverse(), true)}
+                <h3 className="text-sm font-medium text-gray-600 mb-4">Upper Jaw (Maxilla)</h3>
+                <div className="flex justify-center items-center gap-2">
+                  <div className="text-right">
+                    <p className="text-xs text-gray-400 mb-1">Right Upper</p>
+                    {renderTeethRow(CHILDREN_TEETH_ISO.upper.right, true)}
                   </div>
-                  <div>
-                    <p className="text-xs text-gray-400 mb-1">Left</p>
+                  <div className="w-px h-10 bg-gray-300 mx-4"></div>
+                  <div className="text-left">
+                    <p className="text-xs text-gray-400 mb-1">Left Upper</p>
                     {renderTeethRow(CHILDREN_TEETH_ISO.upper.left, true)}
                   </div>
                 </div>
               </div>
               
-              {/* Child Lower Jaw */}
+              {/* Child Lower Jaw - FDI Layout */}
               <div>
-                <h3 className="text-sm font-medium text-gray-600 mb-2">Lower Jaw (Mandible)</h3>
-                <div className="flex justify-center gap-8">
-                  <div>
-                    <p className="text-xs text-gray-400 mb-1">Right</p>
-                    {renderTeethRow([...CHILDREN_TEETH_ISO.lower.right].reverse(), true)}
+                <h3 className="text-sm font-medium text-gray-600 mb-4">Lower Jaw (Mandible)</h3>
+                <div className="flex justify-center items-center gap-2">
+                  <div className="text-right">
+                    <p className="text-xs text-gray-400 mb-1">Right Lower</p>
+                    {renderTeethRow(CHILDREN_TEETH_ISO.lower.right, true)}
                   </div>
-                  <div>
-                    <p className="text-xs text-gray-400 mb-1">Left</p>
+                  <div className="w-px h-10 bg-gray-300 mx-4"></div>
+                  <div className="text-left">
+                    <p className="text-xs text-gray-400 mb-1">Left Lower</p>
                     {renderTeethRow(CHILDREN_TEETH_ISO.lower.left, true)}
                   </div>
                 </div>

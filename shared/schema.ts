@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, timestamp, boolean, date } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, timestamp, boolean, date, serial, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
+import { relations } from "drizzle-orm";
 import { z } from "zod";
 
 export const patients = pgTable("patients", {
@@ -25,6 +26,17 @@ export const appointments = pgTable("appointments", {
   duration: integer("duration").notNull().default(30),
   description: text("description"),
   status: varchar("status", { length: 20 }).notNull().default("scheduled"),
+  
+  // Setmore integration fields
+  setmoreAppointmentKey: varchar("setmore_appointment_key", { length: 100 }), // Setmore appointment ID
+  serviceKey: varchar("service_key", { length: 100 }).notNull().default("cleaning"), // Setmore service key
+  serviceName: varchar("service_name", { length: 200 }).notNull().default("Dental Cleaning"),
+  staffKey: varchar("staff_key", { length: 100 }).notNull().default("dr-smith"), // Setmore staff key
+  staffName: varchar("staff_name", { length: 200 }).notNull().default("Dr. Smith"),
+  cost: integer("cost").notNull().default(0), // in cents
+  currency: varchar("currency", { length: 5 }).notNull().default("EUR"),
+  customerKey: varchar("customer_key", { length: 100 }), // Setmore customer ID
+  
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
@@ -136,6 +148,12 @@ export const insertAppointmentSchema = createInsertSchema(appointments).omit({
 }).extend({
   appointmentDate: z.string().min(1, "Appointment date is required"),
   status: z.enum(["scheduled", "completed", "cancelled"]).default("scheduled"),
+  serviceKey: z.string().default("cleaning"),
+  serviceName: z.string().default("Dental Cleaning"),
+  staffKey: z.string().default("dr-smith"),
+  staffName: z.string().default("Dr. Smith"),
+  cost: z.number().default(0),
+  currency: z.string().default("EUR"),
 });
 
 export const insertPatientFileSchema = createInsertSchema(patientFiles).omit({
@@ -195,3 +213,69 @@ export interface DashboardStats {
   todayAppointments: number;
   monthlyRevenue: number;
 }
+
+// User Management and Access Control Tables
+export const roles = pgTable("roles", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 100 }).notNull().unique(),
+  description: varchar("description", { length: 255 }),
+  permissions: jsonb("permissions").notNull().default('{}'), // Store permissions as JSON
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const employees = pgTable("employees", {
+  id: serial("id").primaryKey(),
+  firstName: varchar("first_name", { length: 100 }).notNull(),
+  lastName: varchar("last_name", { length: 100 }).notNull(),
+  email: varchar("email", { length: 255 }).notNull().unique(),
+  phone: varchar("phone", { length: 20 }),
+  position: varchar("position", { length: 100 }),
+  department: varchar("department", { length: 100 }),
+  roleId: integer("role_id").references(() => roles.id),
+  isActive: boolean("is_active").default(true),
+  startDate: date("start_date"),
+  profileImageUrl: varchar("profile_image_url", { length: 500 }),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const userSessions = pgTable("user_sessions", {
+  id: serial("id").primaryKey(),
+  employeeId: integer("employee_id").references(() => employees.id),
+  sessionToken: varchar("session_token", { length: 255 }).notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Relations
+export const rolesRelations = relations(roles, ({ many }) => ({
+  employees: many(employees),
+}));
+
+export const employeesRelations = relations(employees, ({ one, many }) => ({
+  role: one(roles, {
+    fields: [employees.roleId],
+    references: [roles.id],
+  }),
+  sessions: many(userSessions),
+}));
+
+export const userSessionsRelations = relations(userSessions, ({ one }) => ({
+  employee: one(employees, {
+    fields: [userSessions.employeeId],
+    references: [employees.id],
+  }),
+}));
+
+// Insert schemas
+export const insertRoleSchema = createInsertSchema(roles).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertEmployeeSchema = createInsertSchema(employees).omit({ id: true, createdAt: true, updatedAt: true });
+
+// Types
+export type Role = typeof roles.$inferSelect;
+export type InsertRole = z.infer<typeof insertRoleSchema>;
+export type Employee = typeof employees.$inferSelect;
+export type InsertEmployee = z.infer<typeof insertEmployeeSchema>;
+export type UserSession = typeof userSessions.$inferSelect;
