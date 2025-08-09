@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Users, Calendar, FileText, DollarSign } from "lucide-react";
 import type { DashboardStats } from "@shared/schema";
+import { useSettings } from "@/hooks/useSettings";
 
 export function PatientStats() {
   const { data: stats, isLoading } = useQuery<DashboardStats>({
@@ -12,6 +13,8 @@ export function PatientStats() {
       return response.json();
     },
   });
+
+  const { settings } = useSettings();
 
   if (isLoading) {
     return (
@@ -50,15 +53,15 @@ export function PatientStats() {
       bgColor: "bg-green-100",
       iconColor: "text-green-500"
     },
-
-    {
+    // Only show revenue if user has permission and setting enabled
+    ...(settings?.showRevenue ? [{
       title: "Revenue (Month)",
       value: `$${stats.monthlyRevenue.toLocaleString()}`,
       change: "+15% from last month",
       icon: DollarSign,
       bgColor: "bg-green-100",
       iconColor: "text-green-500"
-    }
+    }] : [])
   ];
 
   return (

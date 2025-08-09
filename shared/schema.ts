@@ -229,6 +229,7 @@ export const employees = pgTable("employees", {
   firstName: varchar("first_name", { length: 100 }).notNull(),
   lastName: varchar("last_name", { length: 100 }).notNull(),
   email: varchar("email", { length: 255 }).notNull().unique(),
+  password: varchar("password", { length: 255 }).notNull(), // Added password field
   phone: varchar("phone", { length: 20 }),
   position: varchar("position", { length: 100 }),
   department: varchar("department", { length: 100 }),
@@ -249,6 +250,17 @@ export const userSessions = pgTable("user_sessions", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Settings table for storing user preferences
+export const settings = pgTable("settings", {
+  id: serial("id").primaryKey(),
+  employeeId: integer("employee_id").references(() => employees.id).notNull(),
+  showRevenue: boolean("show_revenue").default(true),
+  language: varchar("language", { length: 10 }).default("en"),
+  theme: varchar("theme", { length: 20 }).default("light"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const rolesRelations = relations(roles, ({ many }) => ({
   employees: many(employees),
@@ -260,6 +272,17 @@ export const employeesRelations = relations(employees, ({ one, many }) => ({
     references: [roles.id],
   }),
   sessions: many(userSessions),
+  settings: one(settings, {
+    fields: [employees.id],
+    references: [settings.employeeId],
+  }),
+}));
+
+export const settingsRelations = relations(settings, ({ one }) => ({
+  employee: one(employees, {
+    fields: [settings.employeeId],
+    references: [employees.id],
+  }),
 }));
 
 export const userSessionsRelations = relations(userSessions, ({ one }) => ({
@@ -271,11 +294,24 @@ export const userSessionsRelations = relations(userSessions, ({ one }) => ({
 
 // Insert schemas
 export const insertRoleSchema = createInsertSchema(roles).omit({ id: true, createdAt: true, updatedAt: true });
-export const insertEmployeeSchema = createInsertSchema(employees).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertEmployeeSchema = createInsertSchema(employees).omit({ id: true, createdAt: true, updatedAt: true, password: true });
+export const insertEmployeeWithPasswordSchema = createInsertSchema(employees).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertSettingsSchema = createInsertSchema(settings).omit({ id: true, createdAt: true, updatedAt: true });
 
 // Types
 export type Role = typeof roles.$inferSelect;
 export type InsertRole = z.infer<typeof insertRoleSchema>;
 export type Employee = typeof employees.$inferSelect;
 export type InsertEmployee = z.infer<typeof insertEmployeeSchema>;
+export type InsertEmployeeWithPassword = z.infer<typeof insertEmployeeWithPasswordSchema>;
 export type UserSession = typeof userSessions.$inferSelect;
+export type Settings = typeof settings.$inferSelect;
+export type InsertSettings = z.infer<typeof insertSettingsSchema>;
+
+// Login schema
+export const loginSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(1, "Password is required"),
+});
+
+export type LoginData = z.infer<typeof loginSchema>;

@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
 import { LanguageProvider } from "@/components/language-provider";
+import { useAuth } from "@/hooks/useAuth";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/dashboard";
 import PatientsPage from "@/pages/patients/patients";
@@ -15,8 +16,15 @@ import FilesPage from "@/pages/files/files";
 import MedicalRecordsPage from "@/pages/medical-records/medical-records";
 import SettingsPage from "@/pages/settings/settings";
 import ServicesPage from "@/pages/appointments/services";
+import LoginPage from "@/pages/login";
 
 function Router() {
+  const { isAuthenticated, login } = useAuth();
+
+  if (!isAuthenticated) {
+    return <LoginPage onLogin={login} />;
+  }
+
   return (
     <Switch>
       <Route path="/" component={Dashboard} />

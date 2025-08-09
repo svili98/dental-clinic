@@ -12,7 +12,15 @@ import {
   type TreatmentHistory,
   type PaymentRecord,
   type DashboardStats,
-  type PaginatedResponse
+  type PaginatedResponse,
+  type Role,
+  type InsertRole,
+  type Employee,
+  type InsertEmployee,
+  type InsertEmployeeWithPassword,
+  type Settings,
+  type InsertSettings,
+  type LoginData
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 
@@ -90,6 +98,14 @@ export interface IStorage {
   updateEmployee(id: number, employee: Partial<InsertEmployee>): Promise<Employee | undefined>;
   deleteEmployee(id: number): Promise<boolean>;
   setEmployeeStatus(id: number, isActive: boolean): Promise<Employee | undefined>;
+  
+  // Authentication
+  getEmployeeByEmail(email: string): Promise<Employee | undefined>;
+  createEmployeeWithPassword(employee: InsertEmployeeWithPassword): Promise<Employee>;
+  
+  // Settings
+  getEmployeeSettings(employeeId: number): Promise<Settings | undefined>;
+  updateEmployeeSettings(employeeId: number, settings: Partial<InsertSettings>): Promise<Settings>;
 }
 
 export class MemStorage implements IStorage {
@@ -101,6 +117,9 @@ export class MemStorage implements IStorage {
   private medicalNotes: Map<number, MedicalNote>;
   private treatmentHistory: Map<number, TreatmentHistory>;
   private paymentRecords: Map<number, PaymentRecord>;
+  private roles: Map<number, Role>;
+  private employees: Map<number, Employee>;
+  private settings: Map<number, Settings>;
   private idCounters: { 
     patients: number; 
     appointments: number; 
@@ -110,6 +129,9 @@ export class MemStorage implements IStorage {
     notes: number; 
     treatments: number; 
     payments: number; 
+    roles: number;
+    employees: number;
+    settings: number;
   };
 
   constructor() {
@@ -121,6 +143,9 @@ export class MemStorage implements IStorage {
     this.medicalNotes = new Map();
     this.treatmentHistory = new Map();
     this.paymentRecords = new Map();
+    this.roles = new Map();
+    this.employees = new Map();
+    this.settings = new Map();
     this.idCounters = { 
       patients: 1, 
       appointments: 1, 
@@ -129,7 +154,10 @@ export class MemStorage implements IStorage {
       teeth: 1, 
       notes: 1, 
       treatments: 1, 
-      payments: 1 
+      payments: 1,
+      roles: 1,
+      employees: 1,
+      settings: 1
     };
     
     this.seedData();
@@ -196,6 +224,14 @@ export class MemStorage implements IStorage {
         duration: 60,
         description: "Routine Checkup",
         status: "scheduled",
+        setmoreAppointmentKey: null,
+        serviceKey: "cleaning",
+        serviceName: "Dental Cleaning",
+        staffKey: "dr-smith",
+        staffName: "Dr. Smith",
+        cost: 15000,
+        currency: "EUR",
+        customerKey: null,
         createdAt: new Date("2024-12-15"),
         updatedAt: new Date("2024-12-15")
       },
@@ -206,6 +242,14 @@ export class MemStorage implements IStorage {
         duration: 45,
         description: "Cleaning",
         status: "completed",
+        setmoreAppointmentKey: null,
+        serviceKey: "cleaning",
+        serviceName: "Dental Cleaning",
+        staffKey: "dr-smith",
+        staffName: "Dr. Smith",
+        cost: 12000,
+        currency: "EUR",
+        customerKey: null,
         createdAt: new Date("2024-12-15"),
         updatedAt: new Date("2024-12-15")
       }
@@ -215,6 +259,280 @@ export class MemStorage implements IStorage {
       this.appointments.set(appointment.id, appointment);
     });
     this.idCounters.appointments = 3;
+
+    // Seed roles
+    const sampleRoles: Role[] = [
+      {
+        id: 1,
+        name: "Administrator",
+        description: "Full system access with all permissions",
+        permissions: {
+          view_patients: true,
+          create_patients: true,
+          edit_patients: true,
+          delete_patients: true,
+          view_medical_history: true,
+          edit_medical_history: true,
+          view_appointments: true,
+          create_appointments: true,
+          edit_appointments: true,
+          cancel_appointments: true,
+          view_calendar: true,
+          view_payments: true,
+          record_payments: true,
+          view_revenue: true,
+          view_financial_reports: true,
+          manage_pricing: true,
+          manage_users: true,
+          manage_roles: true,
+          system_settings: true,
+          view_audit_logs: true,
+          backup_restore: true,
+          view_odontogram: true,
+          edit_odontogram: true,
+          view_treatment_history: true,
+          create_treatment_plans: true,
+          manage_prescriptions: true,
+          view_files: true,
+          upload_files: true,
+          delete_files: true,
+          manage_file_categories: true
+        },
+        createdAt: new Date("2024-12-01").toISOString(),
+        updatedAt: new Date("2024-12-01").toISOString()
+      },
+      {
+        id: 2,
+        name: "Dentist",
+        description: "Medical professionals with patient and treatment access",
+        permissions: {
+          view_patients: true,
+          create_patients: true,
+          edit_patients: true,
+          delete_patients: false,
+          view_medical_history: true,
+          edit_medical_history: true,
+          view_appointments: true,
+          create_appointments: true,
+          edit_appointments: true,
+          cancel_appointments: true,
+          view_calendar: true,
+          view_payments: true,
+          record_payments: true,
+          view_revenue: false,
+          view_financial_reports: false,
+          manage_pricing: false,
+          manage_users: false,
+          manage_roles: false,
+          system_settings: false,
+          view_audit_logs: false,
+          backup_restore: false,
+          view_odontogram: true,
+          edit_odontogram: true,
+          view_treatment_history: true,
+          create_treatment_plans: true,
+          manage_prescriptions: true,
+          view_files: true,
+          upload_files: true,
+          delete_files: false,
+          manage_file_categories: false
+        },
+        createdAt: new Date("2024-12-01").toISOString(),
+        updatedAt: new Date("2024-12-01").toISOString()
+      },
+      {
+        id: 3,
+        name: "Dental Assistant",
+        description: "Support staff with limited access",
+        permissions: {
+          view_patients: true,
+          create_patients: false,
+          edit_patients: false,
+          delete_patients: false,
+          view_medical_history: true,
+          edit_medical_history: false,
+          view_appointments: true,
+          create_appointments: true,
+          edit_appointments: true,
+          cancel_appointments: false,
+          view_calendar: true,
+          view_payments: false,
+          record_payments: false,
+          view_revenue: false,
+          view_financial_reports: false,
+          manage_pricing: false,
+          manage_users: false,
+          manage_roles: false,
+          system_settings: false,
+          view_audit_logs: false,
+          backup_restore: false,
+          view_odontogram: true,
+          edit_odontogram: false,
+          view_treatment_history: true,
+          create_treatment_plans: false,
+          manage_prescriptions: false,
+          view_files: true,
+          upload_files: true,
+          delete_files: false,
+          manage_file_categories: false
+        },
+        createdAt: new Date("2024-12-01").toISOString(),
+        updatedAt: new Date("2024-12-01").toISOString()
+      },
+      {
+        id: 4,
+        name: "Receptionist",
+        description: "Front desk staff with basic access",
+        permissions: {
+          view_patients: true,
+          create_patients: true,
+          edit_patients: true,
+          delete_patients: false,
+          view_medical_history: false,
+          edit_medical_history: false,
+          view_appointments: true,
+          create_appointments: true,
+          edit_appointments: true,
+          cancel_appointments: true,
+          view_calendar: true,
+          view_payments: true,
+          record_payments: true,
+          view_revenue: false,
+          view_financial_reports: false,
+          manage_pricing: false,
+          manage_users: false,
+          manage_roles: false,
+          system_settings: false,
+          view_audit_logs: false,
+          backup_restore: false,
+          view_odontogram: false,
+          edit_odontogram: false,
+          view_treatment_history: false,
+          create_treatment_plans: false,
+          manage_prescriptions: false,
+          view_files: true,
+          upload_files: true,
+          delete_files: false,
+          manage_file_categories: false
+        },
+        createdAt: new Date("2024-12-01").toISOString(),
+        updatedAt: new Date("2024-12-01").toISOString()
+      }
+    ];
+
+    sampleRoles.forEach(role => {
+      this.roles.set(role.id, role);
+    });
+    this.idCounters.roles = 5;
+
+    // Seed default administrator employee
+    const defaultAdmin: Employee = {
+      id: 1,
+      firstName: "Admin",
+      lastName: "User",
+      email: "admin@dentalcare.com",
+      password: "admin123", // In production, this should be hashed
+      phone: "+1 555 0100",
+      position: "System Administrator",
+      department: "IT",
+      roleId: 1, // Administrator role
+      isActive: true,
+      startDate: "2024-01-01",
+      profileImageUrl: null,
+      notes: "Default system administrator account",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    this.employees.set(defaultAdmin.id, defaultAdmin);
+    this.idCounters.employees = 2;
+
+    // Seed default settings for administrator
+    const defaultSettings: Settings = {
+      id: 1,
+      employeeId: 1,
+      showRevenue: true,
+      language: "en",
+      theme: "light",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    this.settings.set(defaultSettings.id, defaultSettings);
+    this.idCounters.settings = 2;
+
+    // Seed employees
+    const sampleEmployees: Employee[] = [
+      {
+        id: 1,
+        firstName: "Dr. Sarah",
+        lastName: "Johnson",
+        email: "dr.johnson@dentalclinic.com",
+        phone: "+1 555 0101",
+        position: "Chief Dentist",
+        department: "Clinical",
+        roleId: 2,
+        isActive: true,
+        startDate: "2020-01-15",
+        profileImageUrl: null,
+        notes: "Chief dental officer with 15 years of experience",
+        createdAt: new Date("2024-12-01").toISOString(),
+        updatedAt: new Date("2024-12-01").toISOString()
+      },
+      {
+        id: 2,
+        firstName: "Mike",
+        lastName: "Brown",
+        email: "mike.brown@dentalclinic.com",
+        phone: "+1 555 0102",
+        position: "Clinic Administrator",
+        department: "Administration",
+        roleId: 1,
+        isActive: true,
+        startDate: "2021-03-01",
+        profileImageUrl: null,
+        notes: "Manages all clinic operations and staff",
+        createdAt: new Date("2024-12-01").toISOString(),
+        updatedAt: new Date("2024-12-01").toISOString()
+      },
+      {
+        id: 3,
+        firstName: "Lisa",
+        lastName: "Davis",
+        email: "lisa.davis@dentalclinic.com",
+        phone: "+1 555 0103",
+        position: "Dental Assistant",
+        department: "Clinical",
+        roleId: 3,
+        isActive: true,
+        startDate: "2022-06-15",
+        profileImageUrl: null,
+        notes: "Specialized in pediatric dental care",
+        createdAt: new Date("2024-12-01").toISOString(),
+        updatedAt: new Date("2024-12-01").toISOString()
+      },
+      {
+        id: 4,
+        firstName: "Emma",
+        lastName: "Wilson",
+        email: "emma.wilson@dentalclinic.com",
+        phone: "+1 555 0104",
+        position: "Receptionist",
+        department: "Front Desk",
+        roleId: 4,
+        isActive: true,
+        startDate: "2023-02-01",
+        profileImageUrl: null,
+        notes: "Handles appointment scheduling and patient communications",
+        createdAt: new Date("2024-12-01").toISOString(),
+        updatedAt: new Date("2024-12-01").toISOString()
+      }
+    ];
+
+    sampleEmployees.forEach(employee => {
+      this.employees.set(employee.id, employee);
+    });
+    this.idCounters.employees = 5;
   }
 
   async getPatients(params: { search?: string; pageNumber?: number; pageSize?: number }): Promise<PaginatedResponse<Patient>> {
@@ -322,6 +640,8 @@ export class MemStorage implements IStorage {
       duration: appointment.duration || 30,
       description: appointment.description || null,
       appointmentDate: new Date(appointment.appointmentDate),
+      setmoreAppointmentKey: appointment.setmoreAppointmentKey || null,
+      customerKey: appointment.customerKey || null,
       createdAt: new Date(),
       updatedAt: new Date()
     };
@@ -466,6 +786,8 @@ export class MemStorage implements IStorage {
     const treatment: TreatmentHistory = {
       id: this.idCounters.treatments++,
       ...treatmentData,
+      toothNumbers: treatmentData.toothNumbers || null,
+      notes: treatmentData.notes || null,
       appointmentId: null,
       status: "completed",
       performedBy: "Dr. Smith",
@@ -496,6 +818,7 @@ export class MemStorage implements IStorage {
       ...paymentData,
       appointmentId: paymentData.appointmentId || null,
       treatmentId: paymentData.treatmentId || null,
+      notes: paymentData.notes || null,
       paymentStatus: "completed",
       paidAt: new Date(),
       createdAt: new Date(),
@@ -514,6 +837,185 @@ export class MemStorage implements IStorage {
       todayAppointments,
       monthlyRevenue
     };
+  }
+
+  // Role Management Methods
+  async getRoles(): Promise<Role[]> {
+    return Array.from(this.roles.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  async getRole(id: number): Promise<Role | undefined> {
+    return this.roles.get(id);
+  }
+
+  async createRole(roleData: InsertRole): Promise<Role> {
+    const role: Role = {
+      id: this.idCounters.roles++,
+      ...roleData,
+      permissions: roleData.permissions || {},
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    this.roles.set(role.id, role);
+    return role;
+  }
+
+  async updateRole(id: number, roleData: Partial<InsertRole>): Promise<Role | undefined> {
+    const existingRole = this.roles.get(id);
+    if (!existingRole) return undefined;
+
+    const updatedRole: Role = {
+      ...existingRole,
+      ...roleData,
+      updatedAt: new Date().toISOString(),
+    };
+    this.roles.set(id, updatedRole);
+    return updatedRole;
+  }
+
+  async deleteRole(id: number): Promise<boolean> {
+    // Check if any employees are using this role
+    const employeesWithRole = Array.from(this.employees.values()).filter(emp => emp.roleId === id);
+    if (employeesWithRole.length > 0) {
+      return false; // Cannot delete role that is in use
+    }
+    return this.roles.delete(id);
+  }
+
+  // Employee Management Methods
+  async getEmployees(params: { search?: string; isActive?: boolean; roleId?: number }): Promise<Employee[]> {
+    let employees = Array.from(this.employees.values());
+
+    if (params.search) {
+      const searchLower = params.search.toLowerCase();
+      employees = employees.filter(emp =>
+        emp.firstName.toLowerCase().includes(searchLower) ||
+        emp.lastName.toLowerCase().includes(searchLower) ||
+        emp.email.toLowerCase().includes(searchLower) ||
+        emp.position?.toLowerCase().includes(searchLower) ||
+        emp.department?.toLowerCase().includes(searchLower)
+      );
+    }
+
+    if (params.isActive !== undefined) {
+      employees = employees.filter(emp => emp.isActive === params.isActive);
+    }
+
+    if (params.roleId !== undefined) {
+      employees = employees.filter(emp => emp.roleId === params.roleId);
+    }
+
+    return employees.sort((a, b) => a.firstName.localeCompare(b.firstName));
+  }
+
+  async getEmployee(id: number): Promise<Employee | undefined> {
+    return this.employees.get(id);
+  }
+
+  async createEmployee(employeeData: InsertEmployee): Promise<Employee> {
+    const employee: Employee = {
+      id: this.idCounters.employees++,
+      ...employeeData,
+      isActive: employeeData.isActive ?? true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    this.employees.set(employee.id, employee);
+    return employee;
+  }
+
+  async updateEmployee(id: number, employeeData: Partial<InsertEmployee>): Promise<Employee | undefined> {
+    const existingEmployee = this.employees.get(id);
+    if (!existingEmployee) return undefined;
+
+    const updatedEmployee: Employee = {
+      ...existingEmployee,
+      ...employeeData,
+      updatedAt: new Date().toISOString(),
+    };
+    this.employees.set(id, updatedEmployee);
+    return updatedEmployee;
+  }
+
+  async deleteEmployee(id: number): Promise<boolean> {
+    return this.employees.delete(id);
+  }
+
+  async setEmployeeStatus(id: number, isActive: boolean): Promise<Employee | undefined> {
+    const employee = this.employees.get(id);
+    if (!employee) return undefined;
+
+    const updatedEmployee: Employee = {
+      ...employee,
+      isActive,
+      updatedAt: new Date().toISOString(),
+    };
+    this.employees.set(id, updatedEmployee);
+    return updatedEmployee;
+  }
+
+  // Authentication Methods
+  async getEmployeeByEmail(email: string): Promise<Employee | undefined> {
+    return Array.from(this.employees.values()).find(emp => emp.email === email);
+  }
+
+  async createEmployeeWithPassword(employeeData: InsertEmployeeWithPassword): Promise<Employee> {
+    const employee: Employee = {
+      id: this.idCounters.employees++,
+      ...employeeData,
+      isActive: employeeData.isActive ?? true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    this.employees.set(employee.id, employee);
+    
+    // Create default settings for new employee
+    const defaultSettings: Settings = {
+      id: this.idCounters.settings++,
+      employeeId: employee.id,
+      showRevenue: false, // Default to false for new employees
+      language: "en",
+      theme: "light",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    this.settings.set(defaultSettings.id, defaultSettings);
+    
+    return employee;
+  }
+
+  // Settings Methods
+  async getEmployeeSettings(employeeId: number): Promise<Settings | undefined> {
+    return Array.from(this.settings.values()).find(setting => setting.employeeId === employeeId);
+  }
+
+  async updateEmployeeSettings(employeeId: number, settingsData: Partial<InsertSettings>): Promise<Settings> {
+    let existingSettings = Array.from(this.settings.values()).find(setting => setting.employeeId === employeeId);
+    
+    if (existingSettings) {
+      const updatedSettings: Settings = {
+        ...existingSettings,
+        ...settingsData,
+        employeeId, // Ensure employeeId doesn't change
+        updatedAt: new Date().toISOString(),
+      };
+      this.settings.set(existingSettings.id, updatedSettings);
+      return updatedSettings;
+    } else {
+      // Create new settings if they don't exist
+      const newSettings: Settings = {
+        id: this.idCounters.settings++,
+        employeeId,
+        showRevenue: false,
+        language: "en",
+        theme: "light",
+        ...settingsData,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      this.settings.set(newSettings.id, newSettings);
+      return newSettings;
+    }
   }
 }
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Layout } from "@/components/layout/layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,13 +9,27 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Settings, DollarSign, Users, Shield, Eye, EyeOff, UserCog } from "lucide-react";
 import { EmployeeManagement } from "@/components/settings/employee-management";
+import { RoleManagement } from "@/components/settings/role-management";
+import { useSettings } from "@/hooks/useSettings";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function SettingsPage() {
-  const [showRevenue, setShowRevenue] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(true); // Mock admin status
+  const { employee } = useAuth();
+  const { settings, updateSettings, isLoading, isUpdating } = useSettings();
+  const [showRevenue, setShowRevenue] = useState(false);
   const { toast } = useToast();
 
+  // Initialize local state with settings
+  useEffect(() => {
+    if (settings) {
+      setShowRevenue(settings.showRevenue);
+    }
+  }, [settings]);
+
+  const isAdmin = employee?.roleId === 1; // Admin role ID is 1
+
   const handleSaveSettings = () => {
+    updateSettings({ showRevenue });
     toast({
       title: "Settings Saved",
       description: "Your preferences have been updated successfully.",
@@ -108,128 +122,7 @@ export default function SettingsPage() {
           </TabsContent>
           
           <TabsContent value="permissions" className="space-y-6 mt-6">
-            {/* Role-Based Access Control */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Shield className="h-5 w-5 text-purple-600" />
-                  Role-Based Access Control
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="text-sm text-gray-600">
-                  Configure permissions and access levels for different user roles:
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-4 border rounded-lg">
-                    <h4 className="font-medium text-gray-900 mb-2">Administrator</h4>
-                    <ul className="text-sm text-gray-600 space-y-1">
-                      <li>• Full system access</li>
-                      <li>• User management</li>
-                      <li>• Financial reports</li>
-                      <li>• System settings</li>
-                    </ul>
-                  </div>
-                  
-                  <div className="p-4 border rounded-lg">
-                    <h4 className="font-medium text-gray-900 mb-2">Dentist</h4>
-                    <ul className="text-sm text-gray-600 space-y-1">
-                      <li>• Patient management</li>
-                      <li>• Treatment planning</li>
-                      <li>• Medical records</li>
-                      <li>• Appointment management</li>
-                    </ul>
-                  </div>
-                  
-                  <div className="p-4 border rounded-lg">
-                    <h4 className="font-medium text-gray-900 mb-2">Dental Assistant</h4>
-                    <ul className="text-sm text-gray-600 space-y-1">
-                      <li>• View patient records</li>
-                      <li>• Schedule appointments</li>
-                      <li>• Upload files</li>
-                      <li>• Basic reporting</li>
-                    </ul>
-                  </div>
-                  
-                  <div className="p-4 border rounded-lg">
-                    <h4 className="font-medium text-gray-900 mb-2">Receptionist</h4>
-                    <ul className="text-sm text-gray-600 space-y-1">
-                      <li>• Basic patient info</li>
-                      <li>• Appointment scheduling</li>
-                      <li>• File management</li>
-                      <li>• Front desk operations</li>
-                    </ul>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Permission Matrix */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Permission Matrix</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="text-left py-2">Feature</th>
-                        <th className="text-center py-2">Admin</th>
-                        <th className="text-center py-2">Dentist</th>
-                        <th className="text-center py-2">Assistant</th>
-                        <th className="text-center py-2">Receptionist</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr className="border-b">
-                        <td className="py-2">Patient Management</td>
-                        <td className="text-center">✓</td>
-                        <td className="text-center">✓</td>
-                        <td className="text-center">View Only</td>
-                        <td className="text-center">✓</td>
-                      </tr>
-                      <tr className="border-b">
-                        <td className="py-2">Appointments</td>
-                        <td className="text-center">✓</td>
-                        <td className="text-center">✓</td>
-                        <td className="text-center">✓</td>
-                        <td className="text-center">✓</td>
-                      </tr>
-                      <tr className="border-b">
-                        <td className="py-2">Medical Records</td>
-                        <td className="text-center">✓</td>
-                        <td className="text-center">✓</td>
-                        <td className="text-center">View Only</td>
-                        <td className="text-center">✗</td>
-                      </tr>
-                      <tr className="border-b">
-                        <td className="py-2">Financial Reports</td>
-                        <td className="text-center">✓</td>
-                        <td className="text-center">View Only</td>
-                        <td className="text-center">✗</td>
-                        <td className="text-center">✗</td>
-                      </tr>
-                      <tr className="border-b">
-                        <td className="py-2">Employee Management</td>
-                        <td className="text-center">✓</td>
-                        <td className="text-center">✗</td>
-                        <td className="text-center">✗</td>
-                        <td className="text-center">✗</td>
-                      </tr>
-                      <tr className="border-b">
-                        <td className="py-2">Odontogram</td>
-                        <td className="text-center">✓</td>
-                        <td className="text-center">✓</td>
-                        <td className="text-center">View Only</td>
-                        <td className="text-center">✗</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
+            <RoleManagement />
           </TabsContent>
         </Tabs>
       </div>
