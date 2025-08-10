@@ -17,7 +17,7 @@ export default function Dashboard() {
     <Layout>
       <div className="p-6 space-y-8">
         {/* Stats Cards */}
-        <PatientStats />
+        <PatientStats patients={patientsData?.items || []} />
 
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

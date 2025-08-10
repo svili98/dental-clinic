@@ -11,7 +11,13 @@ interface ImagePreviewProps {
     filePath: string
     fileSize: number
     patientId: number
-    createdAt: Date
+    createdAt?: Date
+    uploadedAt?: string
+    category?: string
+    tags?: string[]
+    toothNumbers?: number[]
+    treatmentDate?: string
+    description?: string
   }
   isOpen: boolean
   onClose: () => void

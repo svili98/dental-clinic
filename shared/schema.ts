@@ -67,6 +67,11 @@ export const patientFiles = pgTable("patient_files", {
   fileSize: integer("file_size").notNull(),
   description: text("description"),
   thumbnailPath: varchar("thumbnail_path", { length: 500 }),
+  category: varchar("category", { length: 50 }).notNull().default("general"), // xray, photo, model, document
+  tags: text("tags").array(), // searchable tags like "intraoral", "panoramic", "pre-treatment"
+  toothNumbers: integer("tooth_numbers").array(), // associated teeth for specific procedures
+  treatmentDate: date("treatment_date"), // when the procedure/image was taken
+  metadata: jsonb("metadata"), // additional file-specific data (dimensions, settings, etc.)
   uploadedAt: timestamp("uploaded_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 

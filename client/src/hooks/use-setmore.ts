@@ -46,7 +46,10 @@ export function useCreateSetmoreAppointment() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: (appointment: any) => apiRequest('/api/appointments/setmore', 'POST', appointment),
+    mutationFn: async (appointment: any) => {
+      const response = await apiRequest('POST', '/api/appointments/setmore', appointment);
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/appointments'] });
       queryClient.invalidateQueries({ queryKey: ['/api/appointments/today'] });

@@ -440,8 +440,8 @@ export class MemStorage implements IStorage {
       startDate: "2024-01-01",
       profileImageUrl: null,
       notes: "Default system administrator account",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
 
     this.employees.set(defaultAdmin.id, defaultAdmin);
@@ -461,10 +461,10 @@ export class MemStorage implements IStorage {
     this.settings.set(defaultSettings.id, defaultSettings);
     this.idCounters.settings = 2;
 
-    // Seed employees
+    // Seed employees  
     const sampleEmployees: Employee[] = [
       {
-        id: 1,
+        id: 2,
         firstName: "Dr. Sarah",
         lastName: "Johnson",
         email: "dr.johnson@dentalclinic.com",
@@ -480,7 +480,7 @@ export class MemStorage implements IStorage {
         updatedAt: new Date("2024-12-01").toISOString()
       },
       {
-        id: 2,
+        id: 3,
         firstName: "Mike",
         lastName: "Brown",
         email: "mike.brown@dentalclinic.com",
@@ -496,7 +496,7 @@ export class MemStorage implements IStorage {
         updatedAt: new Date("2024-12-01").toISOString()
       },
       {
-        id: 3,
+        id: 4,
         firstName: "Lisa",
         lastName: "Davis",
         email: "lisa.davis@dentalclinic.com",
@@ -512,7 +512,7 @@ export class MemStorage implements IStorage {
         updatedAt: new Date("2024-12-01").toISOString()
       },
       {
-        id: 4,
+        id: 5,
         firstName: "Emma",
         lastName: "Wilson",
         email: "emma.wilson@dentalclinic.com",
@@ -532,7 +532,7 @@ export class MemStorage implements IStorage {
     sampleEmployees.forEach(employee => {
       this.employees.set(employee.id, employee);
     });
-    this.idCounters.employees = 5;
+    this.idCounters.employees = 6;
   }
 
   async getPatients(params: { search?: string; pageNumber?: number; pageSize?: number }): Promise<PaginatedResponse<Patient>> {

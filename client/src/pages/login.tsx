@@ -39,7 +39,8 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
 
   const loginMutation = useMutation({
     mutationFn: async (data: LoginData): Promise<LoginResponse> => {
-      return await apiRequest("/api/auth/login", "POST", data);
+      const response = await apiRequest("POST", "/api/auth/login", data);
+      return await response.json();
     },
     onSuccess: (data) => {
       toast({

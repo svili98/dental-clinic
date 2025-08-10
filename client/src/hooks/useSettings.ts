@@ -9,13 +9,17 @@ export function useSettings() {
 
   const { data: settings, isLoading } = useQuery<Settings>({
     queryKey: ['/api/settings', employee?.id],
-    queryFn: () => apiRequest(`/api/settings/${employee?.id}`),
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/settings/${employee?.id}`);
+      return response.json();
+    },
     enabled: !!employee?.id,
   });
 
   const updateSettingsMutation = useMutation({
     mutationFn: async (data: Partial<InsertSettings>) => {
-      return await apiRequest(`/api/settings/${employee?.id}`, 'PUT', data);
+      const response = await apiRequest('PUT', `/api/settings/${employee?.id}`, data);
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/settings', employee?.id] });

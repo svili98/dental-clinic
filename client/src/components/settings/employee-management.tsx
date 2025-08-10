@@ -309,7 +309,7 @@ export function EmployeeManagement() {
               <SelectContent>
                 <SelectItem value="all">All Departments</SelectItem>
                 {departments.map(dept => (
-                  <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                  <SelectItem key={dept} value={dept || ""}>{dept}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -363,7 +363,7 @@ export function EmployeeManagement() {
                     {employee.isActive ? "Active" : "Inactive"}
                   </Badge>
                   <Switch
-                    checked={employee.isActive}
+                    checked={employee.isActive ?? false}
                     onCheckedChange={() => handleToggleStatus(employee)}
                   />
                 </div>
@@ -379,11 +379,11 @@ export function EmployeeManagement() {
                   </div>
                   <div className="flex items-center text-gray-600">
                     <Shield className="h-4 w-4 mr-2" />
-                    {getRoleName(employee.roleId)}
+                    {getRoleName(employee.roleId || 1)}
                   </div>
                   <div className="flex items-center text-gray-600">
                     <Calendar className="h-4 w-4 mr-2" />
-                    Joined {new Date(employee.startDate).toLocaleDateString()}
+                    Joined {new Date(employee.startDate || Date.now()).toLocaleDateString()}
                   </div>
                 </div>
                 
@@ -453,7 +453,7 @@ export function EmployeeManagement() {
 interface EmployeeFormProps {
   initialData?: Employee;
   roles: Role[];
-  onSubmit: (data: InsertEmployee | Partial<InsertEmployee>) => void;
+  onSubmit: (data: InsertEmployee) => void;
   isLoading: boolean;
 }
 
@@ -473,7 +473,21 @@ function EmployeeForm({ initialData, roles, onSubmit, isLoading }: EmployeeFormP
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    // Ensure all required fields are present for InsertEmployee
+    const employeeData: InsertEmployee = {
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      email: formData.email,
+      phone: formData.phone || null,
+      position: formData.position || null,
+      department: formData.department || null,
+      roleId: formData.roleId,
+      isActive: formData.isActive,
+      startDate: formData.startDate,
+      notes: formData.notes || null,
+      profileImageUrl: null,
+    };
+    onSubmit(employeeData);
   };
 
   const handleChange = (field: string, value: any) => {

@@ -24,7 +24,7 @@ export function usePatients(params: PatientsQueryParams = {}) {
   });
 }
 
-export function usePatient(id: number) {
+export function usePatient(id?: number) {
   return useQuery<Patient>({
     queryKey: ['/api/patients', id],
     queryFn: async () => {

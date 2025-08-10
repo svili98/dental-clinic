@@ -1,44 +1,123 @@
 import { Layout } from "@/components/layout/layout";
 import { PatientForm } from "@/components/patients/patient-form";
-import { useCreatePatient } from "@/hooks/use-patients";
+import { useCreatePatient, useUpdatePatient, usePatient } from "@/hooks/use-patients";
 import { useToast } from "@/hooks/use-toast";
-import { useLocation } from "wouter";
+import { useLocation, useParams } from "wouter";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Loader2, ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Link } from "wouter";
 import type { InsertPatient } from "@shared/schema";
 
 export default function CreatePatientPage() {
   const [, setLocation] = useLocation();
+  const { id } = useParams();
+  const isEditMode = !!id;
+  
   const createPatientMutation = useCreatePatient();
+  const updatePatientMutation = useUpdatePatient();
   const { toast } = useToast();
+
+  // Fetch patient data if in edit mode
+  const { data: patient, isLoading: isLoadingPatient } = usePatient(
+    isEditMode ? parseInt(id!) : undefined
+  );
 
   const handleSubmit = async (data: InsertPatient) => {
     try {
-      const patient = await createPatientMutation.mutateAsync(data);
-      toast({
-        title: "Success",
-        description: "Patient created successfully",
-      });
-      setLocation(`/patients/${patient.id}`);
+      if (isEditMode && patient) {
+        await updatePatientMutation.mutateAsync({ 
+          id: patient.id, 
+          patient: data 
+        });
+        toast({
+          title: "Success",
+          description: "Patient updated successfully",
+        });
+        setLocation(`/patients/${patient.id}`);
+      } else {
+        const newPatient = await createPatientMutation.mutateAsync(data);
+        toast({
+          title: "Success",
+          description: "Patient created successfully",
+        });
+        setLocation(`/patients/${newPatient.id}`);
+      }
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to create patient",
+        description: isEditMode ? "Failed to update patient" : "Failed to create patient",
         variant: "destructive",
       });
     }
   };
 
   const handleCancel = () => {
-    setLocation("/patients");
+    setLocation(isEditMode ? `/patients/${id}` : "/patients");
   };
+
+  if (isEditMode && isLoadingPatient) {
+    return (
+      <Layout>
+        <div className="p-6 max-w-4xl mx-auto">
+          <Card>
+            <CardContent className="flex items-center justify-center py-12">
+              <Loader2 className="h-6 w-6 animate-spin mr-2" />
+              Loading patient data...
+            </CardContent>
+          </Card>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (isEditMode && !patient) {
+    return (
+      <Layout>
+        <div className="p-6 max-w-4xl mx-auto">
+          <Card>
+            <CardContent className="text-center py-12">
+              <p className="text-gray-500 mb-4">Patient not found</p>
+              <Link href="/patients">
+                <Button variant="outline">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Patients
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
       <div className="p-6 max-w-4xl mx-auto">
-        <PatientForm
-          onSubmit={handleSubmit}
-          loading={createPatientMutation.isPending}
-          onCancel={handleCancel}
-        />
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>
+                {isEditMode ? "Edit Patient" : "Add New Patient"}
+              </CardTitle>
+              <Link href={isEditMode ? `/patients/${id}` : "/patients"}>
+                <Button variant="outline" size="sm">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back
+                </Button>
+              </Link>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <PatientForm
+              initialData={isEditMode ? patient : undefined}
+              onSubmit={handleSubmit}
+              loading={createPatientMutation.isPending || updatePatientMutation.isPending}
+              onCancel={handleCancel}
+              isEditMode={isEditMode}
+            />
+          </CardContent>
+        </Card>
       </div>
     </Layout>
   );

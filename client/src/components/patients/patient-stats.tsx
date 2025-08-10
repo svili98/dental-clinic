@@ -1,85 +1,144 @@
-import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent } from "@/components/ui/card";
-import { Users, Calendar, FileText, DollarSign } from "lucide-react";
-import type { DashboardStats } from "@shared/schema";
-import { useSettings } from "@/hooks/useSettings";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Users, UserCheck, UserX, Calendar, Activity, TrendingUp } from "lucide-react";
+import type { Patient } from "@shared/schema";
+import { differenceInYears, parseISO } from "date-fns";
 
-export function PatientStats() {
-  const { data: stats, isLoading } = useQuery<DashboardStats>({
-    queryKey: ['/api/dashboard/stats'],
-    queryFn: async () => {
-      const response = await fetch('/api/dashboard/stats');
-      if (!response.ok) throw new Error('Failed to fetch stats');
-      return response.json();
-    },
-  });
+interface PatientStatsProps {
+  patients?: Patient[];
+}
 
-  const { settings } = useSettings();
+export function PatientStats({ patients }: PatientStatsProps) {
+  const safePatients = patients || [];
+  const totalPatients = safePatients.length;
+  
+  const activePatients = safePatients.filter(p => {
+    const daysSinceLastVisit = (new Date().getTime() - new Date(p.updatedAt).getTime()) / (1000 * 60 * 60 * 24);
+    return daysSinceLastVisit <= 180;
+  }).length;
 
-  if (isLoading) {
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {[1, 2, 3].map((i) => (
-          <Card key={i} className="card-hover">
-            <CardContent className="p-6">
-              <div className="animate-pulse">
-                <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                <div className="h-8 bg-gray-200 rounded mb-2"></div>
-                <div className="h-3 bg-gray-200 rounded"></div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    );
-  }
+  const inactivePatients = totalPatients - activePatients;
 
-  if (!stats) return null;
+  const newPatientsThisMonth = safePatients.filter(p => {
+    const daysSinceCreated = (new Date().getTime() - new Date(p.createdAt).getTime()) / (1000 * 60 * 60 * 24);
+    return daysSinceCreated <= 30;
+  }).length;
 
-  const statItems = [
+  const averageAge = safePatients.length > 0 ? Math.round(
+    safePatients.reduce((sum, p) => {
+      try {
+        return sum + differenceInYears(new Date(), parseISO(p.dateOfBirth));
+      } catch {
+        return sum;
+      }
+    }, 0) / safePatients.length
+  ) : 0;
+
+  const ageDistribution = {
+    children: safePatients.filter(p => {
+      try {
+        const age = differenceInYears(new Date(), parseISO(p.dateOfBirth));
+        return age < 18;
+      } catch {
+        return false;
+      }
+    }).length,
+    adults: safePatients.filter(p => {
+      try {
+        const age = differenceInYears(new Date(), parseISO(p.dateOfBirth));
+        return age >= 18 && age < 65;
+      } catch {
+        return false;
+      }
+    }).length,
+    seniors: safePatients.filter(p => {
+      try {
+        const age = differenceInYears(new Date(), parseISO(p.dateOfBirth));
+        return age >= 65;
+      } catch {
+        return false;
+      }
+    }).length,
+  };
+
+  const stats = [
     {
       title: "Total Patients",
-      value: stats.totalPatients.toLocaleString(),
-      change: "+12% from last month",
+      value: totalPatients.toString(),
+      description: "All registered patients",
       icon: Users,
-      bgColor: "bg-blue-100",
-      iconColor: "text-blue-500"
+      color: "text-blue-600",
+      bgColor: "bg-blue-50",
+      badge: null,
     },
     {
-      title: "Today's Appointments",
-      value: stats.todayAppointments.toString(),
-      change: "5 pending",
-      icon: Calendar,
-      bgColor: "bg-green-100",
-      iconColor: "text-green-500"
+      title: "Active Patients",
+      value: activePatients.toString(),
+      description: "Visited within 6 months",
+      icon: UserCheck,
+      color: "text-green-600",
+      bgColor: "bg-green-50",
+      badge: totalPatients > 0 ? `${Math.round((activePatients / totalPatients) * 100)}%` : "0%",
     },
-    // Only show revenue if user has permission and setting enabled
-    ...(settings?.showRevenue ? [{
-      title: "Revenue (Month)",
-      value: `$${stats.monthlyRevenue.toLocaleString()}`,
-      change: "+15% from last month",
-      icon: DollarSign,
-      bgColor: "bg-green-100",
-      iconColor: "text-green-500"
-    }] : [])
+    {
+      title: "Inactive Patients",
+      value: inactivePatients.toString(),
+      description: "No recent visits",
+      icon: UserX,
+      color: "text-orange-600",
+      bgColor: "bg-orange-50",
+      badge: totalPatients > 0 ? `${Math.round((inactivePatients / totalPatients) * 100)}%` : "0%",
+    },
+    {
+      title: "New This Month",
+      value: newPatientsThisMonth.toString(),
+      description: "Recently registered",
+      icon: TrendingUp,
+      color: "text-purple-600",
+      bgColor: "bg-purple-50",
+      badge: newPatientsThisMonth > 0 ? "New" : null,
+    },
+    {
+      title: "Average Age",
+      value: `${averageAge} years`,
+      description: "Patient demographics",
+      icon: Calendar,
+      color: "text-indigo-600",
+      bgColor: "bg-indigo-50",
+      badge: null,
+    },
+    {
+      title: "Age Distribution",
+      value: `${ageDistribution.children}/${ageDistribution.adults}/${ageDistribution.seniors}`,
+      description: "Children/Adults/Seniors",
+      icon: Activity,
+      color: "text-cyan-600",
+      bgColor: "bg-cyan-50",
+      badge: null,
+    },
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {statItems.map((item) => {
-        const Icon = item.icon;
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+      {stats.map((stat, index) => {
+        const Icon = stat.icon;
         return (
-          <Card key={item.title} className="card-hover">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">{item.title}</p>
-                  <p className="text-3xl font-bold text-gray-900">{item.value}</p>
-                  <p className="text-sm text-green-500">{item.change}</p>
+          <Card key={index} className="hover:shadow-md transition-shadow duration-200">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-2">
+                <div className={`${stat.bgColor} p-2 rounded-lg`}>
+                  <Icon className={`h-4 w-4 ${stat.color}`} />
                 </div>
-                <div className={`w-12 h-12 ${item.bgColor} rounded-lg flex items-center justify-center`}>
-                  <Icon className={`${item.iconColor} h-6 w-6`} />
-                </div>
+                {stat.badge && (
+                  <Badge variant="secondary" className="text-xs">
+                    {stat.badge}
+                  </Badge>
+                )}
+              </div>
+              <div className="space-y-1">
+                <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                <p className="text-sm font-medium text-gray-900">{stat.title}</p>
+                <p className="text-xs text-gray-500">{stat.description}</p>
               </div>
             </CardContent>
           </Card>
