@@ -16,7 +16,8 @@ export function useCreateTreatmentHistory() {
       description, 
       toothNumbers, 
       duration, 
-      cost, 
+      cost,
+      currency,
       notes 
     }: { 
       patientId: number;
@@ -25,6 +26,7 @@ export function useCreateTreatmentHistory() {
       toothNumbers?: string;
       duration?: number;
       cost?: number;
+      currency?: string;
       notes?: string;
     }) => {
       const response = await fetch(`/api/patients/${patientId}/treatment-history`, {
@@ -37,7 +39,8 @@ export function useCreateTreatmentHistory() {
           description, 
           toothNumbers, 
           duration, 
-          cost, 
+          cost,
+          currency,
           notes 
         }),
       });

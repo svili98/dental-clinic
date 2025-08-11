@@ -14,6 +14,7 @@ export const patients = pgTable("patients", {
   address: text("address"),
   gender: varchar("gender", { length: 10 }).notNull(),
   jmbg: varchar("jmbg", { length: 13 }).notNull().unique(),
+  profilePicture: varchar("profile_picture", { length: 500 }), // URL or path to profile picture
   statusId: integer("status_id").notNull().default(1),
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
@@ -112,7 +113,8 @@ export const treatmentHistory = pgTable("treatment_history", {
   description: text("description").notNull(),
   toothNumbers: varchar("tooth_numbers", { length: 100 }), // e.g., "1,2,3" for multiple teeth
   duration: integer("duration").notNull().default(30), // minutes
-  cost: integer("cost").notNull().default(0), // in cents
+  cost: integer("cost").notNull().default(0), // in smallest currency unit (cents, paras, etc.)
+  currency: varchar("currency", { length: 3 }).notNull().default("EUR"), // EUR, RSD, CHF
   status: varchar("status", { length: 20 }).notNull().default("completed"),
   notes: text("notes"),
   performedBy: varchar("performed_by", { length: 100 }).notNull().default("Dr. Smith"),
@@ -126,9 +128,12 @@ export const paymentRecords = pgTable("payment_records", {
   patientId: integer("patient_id").notNull().references(() => patients.id),
   appointmentId: integer("appointment_id").references(() => appointments.id),
   treatmentId: integer("treatment_id").references(() => treatmentHistory.id),
-  amount: integer("amount").notNull(), // in cents
+  amount: integer("amount").notNull(), // in smallest currency unit (cents, paras, etc.)
+  currency: varchar("currency", { length: 3 }).notNull().default("EUR"), // EUR, RSD, CHF
   paymentMethod: varchar("payment_method", { length: 50 }).notNull().default("cash"),
   paymentStatus: varchar("payment_status", { length: 20 }).notNull().default("completed"),
+  treatmentContext: varchar("treatment_context", { length: 100 }), // e.g., "orthodontic", "emergency", "routine"
+  doctorName: varchar("doctor_name", { length: 100 }), // Name of the doctor who provided the treatment
   notes: text("notes"),
   paidAt: timestamp("paid_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
@@ -166,6 +171,15 @@ export const insertPatientFileSchema = createInsertSchema(patientFiles).omit({
   uploadedAt: true,
 });
 
+export const insertPaymentRecordSchema = createInsertSchema(paymentRecords).omit({
+  id: true,
+  createdAt: true,
+}).extend({
+  currency: z.enum(["EUR", "RSD", "CHF"]).default("EUR"),
+  treatmentContext: z.string().optional(),
+  doctorName: z.string().optional(),
+});
+
 export const insertToothRecordSchema = createInsertSchema(toothRecords).omit({
   id: true,
   createdAt: true,
@@ -181,6 +195,15 @@ export const insertToothRecordSchema = createInsertSchema(toothRecords).omit({
   treatmentDate: z.string().optional(),
   color: z.string().default("#ffffff"),
   isCompleted: z.boolean().default(true),
+});
+
+export const insertTreatmentHistorySchema = createInsertSchema(treatmentHistory).omit({
+  id: true,
+  createdAt: true,
+  performedAt: true,
+}).extend({
+  currency: z.enum(["EUR", "RSD", "CHF"]).default("EUR"),
+  status: z.enum(["planned", "in_progress", "completed", "cancelled"]).default("completed"),
 });
 
 // Types
@@ -202,6 +225,7 @@ export type InsertToothRecord = z.infer<typeof insertToothRecordSchema>;
 
 export type MedicalNote = typeof medicalNotes.$inferSelect;
 export type TreatmentHistory = typeof treatmentHistory.$inferSelect;
+export type InsertTreatmentHistory = z.infer<typeof insertTreatmentHistorySchema>;
 export type PaymentRecord = typeof paymentRecords.$inferSelect;
 
 // Response types

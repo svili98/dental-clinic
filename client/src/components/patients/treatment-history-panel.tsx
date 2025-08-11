@@ -23,6 +23,7 @@ export function TreatmentHistoryPanel({ patientId }: TreatmentHistoryPanelProps)
   const [toothNumbers, setToothNumbers] = useState("");
   const [duration, setDuration] = useState(30);
   const [cost, setCost] = useState(0);
+  const [currency, setCurrency] = useState("EUR");
   const [notes, setNotes] = useState("");
 
   const { data: treatments, isLoading } = useTreatmentHistory(patientId);
@@ -103,13 +104,22 @@ export function TreatmentHistoryPanel({ patientId }: TreatmentHistoryPanelProps)
     }
 
     try {
+      // Convert cost to smallest currency unit
+      let costInSmallestUnit: number;
+      if (currency === "RSD") {
+        costInSmallestUnit = Math.round(cost * 100); // RSD paras
+      } else {
+        costInSmallestUnit = Math.round(cost * 100); // EUR/CHF cents
+      }
+
       await createTreatmentMutation.mutateAsync({
         patientId,
         treatmentType: treatmentType.trim(),
         description: description.trim(),
         toothNumbers: toothNumbers.trim() || undefined,
         duration,
-        cost,
+        cost: costInSmallestUnit,
+        currency,
         notes: notes.trim() || undefined,
       });
 
@@ -129,6 +139,7 @@ export function TreatmentHistoryPanel({ patientId }: TreatmentHistoryPanelProps)
       setToothNumbers("");
       setDuration(30);
       setCost(0);
+      setCurrency("EUR");
       setNotes("");
       setDialogOpen(false);
     } catch (error) {
@@ -140,8 +151,14 @@ export function TreatmentHistoryPanel({ patientId }: TreatmentHistoryPanelProps)
     }
   };
 
-  const formatCurrency = (cents: number) => {
-    return `€${(cents / 100).toFixed(2)}`;
+  const formatCurrency = (amountInSmallestUnit: number, currency: string) => {
+    const amount = (amountInSmallestUnit / 100).toFixed(2);
+    switch (currency) {
+      case 'EUR': return `€${amount}`;
+      case 'RSD': return `${amount} дин`;
+      case 'CHF': return `Fr ${amount}`;
+      default: return `€${amount}`;
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -181,8 +198,9 @@ export function TreatmentHistoryPanel({ patientId }: TreatmentHistoryPanelProps)
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="Dental Cleaning">Dental Cleaning</SelectItem>
+                      <SelectItem value="Dental Checkup">Dental Checkup</SelectItem>
                       <SelectItem value="Tooth Filling">Tooth Filling</SelectItem>
-                      <SelectItem value="Root Canal">Root Canal</SelectItem>
+                      <SelectItem value="Root Canal Treatment">Root Canal Treatment</SelectItem>
                       <SelectItem value="Crown Installation">Crown Installation</SelectItem>
                       <SelectItem value="Tooth Extraction">Tooth Extraction</SelectItem>
                       <SelectItem value="Orthodontic Treatment">Orthodontic Treatment</SelectItem>
@@ -190,6 +208,11 @@ export function TreatmentHistoryPanel({ patientId }: TreatmentHistoryPanelProps)
                       <SelectItem value="Teeth Whitening">Teeth Whitening</SelectItem>
                       <SelectItem value="Periodontal Treatment">Periodontal Treatment</SelectItem>
                       <SelectItem value="Emergency Treatment">Emergency Treatment</SelectItem>
+                      <SelectItem value="Veneer Application">Veneer Application</SelectItem>
+                      <SelectItem value="Bridge Installation">Bridge Installation</SelectItem>
+                      <SelectItem value="Caries Treatment">Caries Treatment</SelectItem>
+                      <SelectItem value="Fracture Repair">Fracture Repair</SelectItem>
+                      <SelectItem value="Impacted Tooth Treatment">Impacted Tooth Treatment</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -212,7 +235,7 @@ export function TreatmentHistoryPanel({ patientId }: TreatmentHistoryPanelProps)
                   />
                   <p className="text-xs text-gray-500">Use ISO 3950 (FDI) numbering. Will automatically update odontogram.</p>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-4">
                   <div>
                     <label className="text-sm font-medium">Duration (minutes)</label>
                     <Input
@@ -224,14 +247,28 @@ export function TreatmentHistoryPanel({ patientId }: TreatmentHistoryPanelProps)
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-medium">Cost (€)</label>
+                    <label className="text-sm font-medium">Cost</label>
                     <Input
                       type="number"
                       step="0.01"
-                      value={cost / 100}
-                      onChange={(e) => setCost(Math.round(parseFloat(e.target.value) * 100) || 0)}
+                      value={cost}
+                      onChange={(e) => setCost(parseFloat(e.target.value) || 0)}
                       min="0"
+                      placeholder="0.00"
                     />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Currency</label>
+                    <Select value={currency} onValueChange={setCurrency}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="EUR">EUR (€)</SelectItem>
+                        <SelectItem value="RSD">RSD (дин)</SelectItem>
+                        <SelectItem value="CHF">CHF (Fr)</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
                 <div>
@@ -307,7 +344,7 @@ export function TreatmentHistoryPanel({ patientId }: TreatmentHistoryPanelProps)
                   </div>
                   <div className="flex items-center">
                     <DollarSign className="h-3 w-3 mr-1" />
-                    <span className="font-medium">{formatCurrency(treatment.cost)}</span>
+                    <span className="font-medium">{formatCurrency(treatment.cost, treatment.currency || 'EUR')}</span>
                   </div>
                 </div>
               </div>

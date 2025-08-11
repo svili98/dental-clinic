@@ -138,15 +138,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/files", async (req, res) => {
+  // File upload endpoint with multer for handling multipart/form-data
+  const multer = await import('multer');
+  const upload = multer.default({
+    storage: multer.default.memoryStorage(),
+    limits: {
+      fileSize: 10 * 1024 * 1024, // 10MB limit
+    },
+  });
+
+  app.post("/api/files", upload.single('file'), async (req, res) => {
     try {
-      const validatedData = insertPatientFileSchema.parse(req.body);
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+
+      const { patientId, category, description, tags } = req.body;
+      
+      if (!patientId) {
+        return res.status(400).json({ message: "Patient ID is required" });
+      }
+
+      const fileData = {
+        patientId: parseInt(patientId),
+        fileName: req.file.originalname,
+        fileSize: req.file.size,
+        mimeType: req.file.mimetype,
+        category: category || 'document',
+        description: description || req.file.originalname,
+        tags: tags ? tags.split(',').map((tag: string) => tag.trim()) : [],
+        filePath: `/uploads/${Date.now()}-${req.file.originalname}`, // Mock file path
+      };
+
+      const validatedData = insertPatientFileSchema.parse(fileData);
       const file = await storage.createPatientFile(validatedData);
       res.status(201).json(file);
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Validation error", errors: error.errors });
       }
+      console.error('File upload error:', error);
       res.status(500).json({ message: "Failed to create file record" });
     }
   });
@@ -267,7 +298,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/patients/:patientId/treatment-history", async (req, res) => {
     try {
       const patientId = parseInt(req.params.patientId);
-      const { treatmentType, description, toothNumbers, duration = 30, cost = 0, notes } = req.body;
+      const { treatmentType, description, toothNumbers, duration = 30, cost = 0, currency = 'EUR', notes } = req.body;
       if (!treatmentType || !description) {
         return res.status(400).json({ message: 'Treatment type and description are required' });
       }
@@ -277,7 +308,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         description, 
         toothNumbers, 
         duration: parseInt(duration) || 30, 
-        cost: parseInt(cost) || 0, 
+        cost: parseInt(cost) || 0,
+        currency,
         notes
       });
       res.status(201).json(treatment);
@@ -290,20 +322,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/patients/:patientId/payments", async (req, res) => {
     try {
       const patientId = parseInt(req.params.patientId);
-      const { amount, paymentMethod = 'cash', appointmentId, treatmentId, notes } = req.body;
-      if (!amount || amount <= 0) {
+      const { 
+        amount, 
+        currency = 'EUR',
+        paymentMethod = 'cash', 
+        appointmentId, 
+        treatmentId,
+        treatmentContext,
+        doctorName,
+        notes 
+      } = req.body;
+      
+      // amount should already be in smallest currency unit from frontend
+      const amountInSmallestUnit = parseInt(amount);
+      if (!amountInSmallestUnit || amountInSmallestUnit <= 0 || isNaN(amountInSmallestUnit)) {
         return res.status(400).json({ message: 'Valid amount is required' });
       }
+      
       const payment = await storage.createPaymentRecord({
         patientId,
-        amount: parseInt(amount),
+        amount: amountInSmallestUnit,
+        currency,
         paymentMethod,
         appointmentId: appointmentId ? parseInt(appointmentId) : undefined,
         treatmentId: treatmentId ? parseInt(treatmentId) : undefined,
+        treatmentContext,
+        doctorName,
         notes
       });
       res.status(201).json(payment);
     } catch (error) {
+      console.error('Payment creation error:', error);
       res.status(500).json({ message: "Failed to create payment record" });
     }
   });

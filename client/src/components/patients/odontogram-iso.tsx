@@ -72,6 +72,28 @@ const CONDITION_COLORS = {
   needs_treatment: "#ff8844",
 } as const;
 
+// Tooth surfaces for notation (FDI system)
+const TOOTH_SURFACES = {
+  // Universal surfaces for all teeth
+  M: "Mesial", // Towards midline
+  D: "Distal", // Away from midline
+  L: "Lingual/Palatal", // Tongue/palate side
+  B: "Buccal/Labial", // Cheek/lip side
+  // Occlusal surfaces for posterior teeth
+  O: "Occlusal", // Chewing surface
+  // Incisal surfaces for anterior teeth
+  I: "Incisal", // Cutting edge
+} as const;
+
+const SURFACE_POSITIONS = {
+  M: { x: "15%", y: "50%" },
+  D: { x: "85%", y: "50%" },
+  O: { x: "50%", y: "30%" },
+  I: { x: "50%", y: "30%" },
+  L: { x: "50%", y: "15%" },
+  B: { x: "50%", y: "85%" },
+} as const;
+
 const CONDITION_NAMES = {
   healthy: "Healthy",
   caries: "Caries",
@@ -99,6 +121,7 @@ interface ToothProps {
 function Tooth({ toothNumber, record, onUpdate, isChild = false }: ToothProps) {
   const condition = record?.condition || "healthy";
   const color = record?.color || CONDITION_COLORS[condition as keyof typeof CONDITION_COLORS];
+  const surfaces = record?.surfaces ? record.surfaces.split(',').map(s => s.trim()) : [];
   
   return (
     <button
@@ -107,13 +130,35 @@ function Tooth({ toothNumber, record, onUpdate, isChild = false }: ToothProps) {
         isChild ? 'w-6 h-8' : 'w-8 h-10'
       }`}
       style={{ backgroundColor: color }}
-      title={`Tooth ${toothNumber}${record ? ` - ${CONDITION_NAMES[condition as keyof typeof CONDITION_NAMES]}` : ""}`}
+      title={`Tooth ${toothNumber}${record ? ` - ${CONDITION_NAMES[condition as keyof typeof CONDITION_NAMES]}` : ""}${surfaces.length > 0 ? ` (${surfaces.join(', ')})` : ""}`}
     >
       <span className={`absolute inset-0 flex items-center justify-center font-medium text-gray-800 ${
         isChild ? 'text-xs' : 'text-xs'
       }`}>
         {toothNumber}
       </span>
+      
+      {/* Surface notation indicators */}
+      {surfaces.length > 0 && (
+        <div className="absolute inset-0 pointer-events-none">
+          {surfaces.map(surface => {
+            const pos = SURFACE_POSITIONS[surface as keyof typeof SURFACE_POSITIONS];
+            if (!pos) return null;
+            return (
+              <div
+                key={surface}
+                className="absolute w-1 h-1 bg-red-500 rounded-full"
+                style={{
+                  left: pos.x,
+                  top: pos.y,
+                  transform: 'translate(-50%, -50%)'
+                }}
+              />
+            );
+          })}
+        </div>
+      )}
+      
       {record && (
         <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-600 rounded-full"></div>
       )}
@@ -131,9 +176,14 @@ interface ToothDialogProps {
 
 function ToothDialog({ toothNumber, record, patientId, isOpen, onClose }: ToothDialogProps) {
   const [condition, setCondition] = useState(record?.condition || "healthy");
-  const [surfaces, setSurfaces] = useState(record?.surfaces || "");
+  const [selectedSurfaces, setSelectedSurfaces] = useState<string[]>(
+    record?.surfaces ? record.surfaces.split(',').map(s => s.trim()) : []
+  );
   const [treatment, setTreatment] = useState(record?.treatment || "");
   const [notes, setNotes] = useState(record?.notes || "");
+  const [treatmentCost, setTreatmentCost] = useState(0);
+  const [treatmentCurrency, setTreatmentCurrency] = useState("EUR");
+  const [createOutstandingBalance, setCreateOutstandingBalance] = useState(false);
   
   const { toast } = useToast();
   const createMutation = useCreateToothRecord();
@@ -176,13 +226,42 @@ function ToothDialog({ toothNumber, record, patientId, isOpen, onClose }: ToothD
     return costMap[condition] || 5000; // Default €50.00
   };
   
+  const toggleSurface = (surface: string) => {
+    setSelectedSurfaces(prev => 
+      prev.includes(surface) 
+        ? prev.filter(s => s !== surface)
+        : [...prev, surface]
+    );
+  };
+
+  const isAnteriorTooth = (toothNumber: number) => {
+    const toothStr = toothNumber.toString();
+    if (toothStr.length === 2) {
+      const lastDigit = parseInt(toothStr[1]);
+      return lastDigit >= 1 && lastDigit <= 3; // Central, lateral incisors, canines
+    }
+    return false;
+  };
+
+  const isPosteriorTooth = (toothNumber: number) => {
+    const toothStr = toothNumber.toString();
+    if (toothStr.length === 2) {
+      const lastDigit = parseInt(toothStr[1]);
+      return lastDigit >= 4 && lastDigit <= 8; // Premolars and molars
+    }
+    return false;
+  };
+
   const handleSave = async () => {
     try {
+      const surfacesString = selectedSurfaces.join(',');
+      const costInSmallestUnit = treatmentCost > 0 ? Math.round(treatmentCost * 100) : getEstimatedCost(condition);
+      
       const data: InsertToothRecord = {
         patientId,
         toothNumber,
         condition: condition as any,
-        surfaces: surfaces || undefined,
+        surfaces: surfacesString || undefined,
         treatment: treatment || undefined,
         notes: notes || undefined,
         color: CONDITION_COLORS[condition as keyof typeof CONDITION_COLORS],
@@ -199,21 +278,44 @@ function ToothDialog({ toothNumber, record, patientId, isOpen, onClose }: ToothD
       // Create corresponding treatment history entry
       const treatmentType = getTreatmentTypeFromCondition(condition);
       const treatmentDescription = treatment || `${treatmentType} performed on tooth ${toothNumber}`;
-      const estimatedCost = getEstimatedCost(condition);
       
-      await createTreatmentMutation.mutateAsync({
+      const treatmentData = {
         patientId,
         treatmentType,
-        description: treatmentDescription + (surfaces ? ` (surfaces: ${surfaces})` : ''),
+        description: treatmentDescription + (surfacesString ? ` (surfaces: ${surfacesString})` : ''),
         toothNumbers: toothNumber.toString(),
         duration: 45, // Default 45 minutes
-        cost: estimatedCost,
+        cost: costInSmallestUnit,
+        currency: treatmentCurrency,
         notes: notes ? `Odontogram entry: ${notes}` : 'Added via odontogram',
-      });
+      };
+      
+      await createTreatmentMutation.mutateAsync(treatmentData);
+      
+      // Create outstanding balance if requested
+      if (createOutstandingBalance && treatmentCost > 0) {
+        try {
+          await fetch(`/api/patients/${patientId}/payments`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              amount: -costInSmallestUnit, // Negative amount for outstanding balance
+              currency: treatmentCurrency,
+              paymentMethod: 'outstanding',
+              paymentStatus: 'pending',
+              treatmentContext: `Treatment: ${treatmentType}`,
+              doctorName: 'Dr. Smith',
+              notes: `Outstanding balance for tooth ${toothNumber} treatment`
+            })
+          });
+        } catch (paymentError) {
+          console.error('Failed to create outstanding balance:', paymentError);
+        }
+      }
       
       toast({
         title: "Success",
-        description: `Tooth ${toothNumber} record ${record ? 'updated' : 'created'} and treatment history added`,
+        description: `Tooth ${toothNumber} ${record ? 'updated' : 'created'} with treatment history${createOutstandingBalance ? ' and outstanding balance' : ''}`,
       });
       
       onClose();
@@ -260,13 +362,79 @@ function ToothDialog({ toothNumber, record, patientId, isOpen, onClose }: ToothD
           </div>
           
           <div>
-            <Label htmlFor="surfaces">Affected Surfaces (e.g., MO, DO, MOD)</Label>
-            <Input
-              id="surfaces"
-              value={surfaces}
-              onChange={(e) => setSurfaces(e.target.value)}
-              placeholder="M, O, D, B, L, I"
-            />
+            <Label>Affected Surfaces</Label>
+            <div className="mt-2">
+              {/* Visual tooth surface selector */}
+              <div className="relative mx-auto mb-4" style={{ width: "120px", height: "80px" }}>
+                <svg viewBox="0 0 120 80" className="w-full h-full border border-gray-300 rounded bg-white">
+                  {/* Tooth shape */}
+                  <rect x="30" y="20" width="60" height="40" rx="8" fill="#f8f9fa" stroke="#dee2e6" strokeWidth="1"/>
+                  
+                  {/* Surface markers */}
+                  {Object.entries(SURFACE_POSITIONS).map(([surface, pos]) => {
+                    // Show O for posterior teeth, I for anterior teeth
+                    if (surface === 'O' && !isPosteriorTooth(toothNumber)) return null;
+                    if (surface === 'I' && !isAnteriorTooth(toothNumber)) return null;
+                    
+                    const isSelected = selectedSurfaces.includes(surface);
+                    return (
+                      <g key={surface}>
+                        <circle
+                          cx={parseFloat(pos.x)}
+                          cy={parseFloat(pos.y)}
+                          r="8"
+                          fill={isSelected ? "#3b82f6" : "#e5e7eb"}
+                          stroke={isSelected ? "#1d4ed8" : "#9ca3af"}
+                          strokeWidth="1"
+                          className="cursor-pointer hover:fill-blue-200"
+                          onClick={() => toggleSurface(surface)}
+                        />
+                        <text
+                          x={parseFloat(pos.x)}
+                          y={parseFloat(pos.y) + 2}
+                          textAnchor="middle"
+                          fontSize="8"
+                          fill={isSelected ? "white" : "#374151"}
+                          className="cursor-pointer select-none"
+                          onClick={() => toggleSurface(surface)}
+                        >
+                          {surface}
+                        </text>
+                      </g>
+                    );
+                  })}
+                </svg>
+              </div>
+              
+              {/* Surface buttons */}
+              <div className="grid grid-cols-3 gap-2">
+                {Object.entries(TOOTH_SURFACES).map(([key, name]) => {
+                  // Show O for posterior teeth, I for anterior teeth
+                  if (key === 'O' && !isPosteriorTooth(toothNumber)) return null;
+                  if (key === 'I' && !isAnteriorTooth(toothNumber)) return null;
+                  
+                  const isSelected = selectedSurfaces.includes(key);
+                  return (
+                    <Button
+                      key={key}
+                      type="button"
+                      variant={isSelected ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => toggleSurface(key)}
+                      className="text-xs"
+                    >
+                      {key} - {name}
+                    </Button>
+                  );
+                })}
+              </div>
+              
+              {selectedSurfaces.length > 0 && (
+                <p className="text-xs text-gray-500 mt-2">
+                  Selected: {selectedSurfaces.join(', ')}
+                </p>
+              )}
+            </div>
           </div>
           
           <div>
@@ -288,6 +456,56 @@ function ToothDialog({ toothNumber, record, patientId, isOpen, onClose }: ToothD
               placeholder="Additional notes about this tooth"
               rows={3}
             />
+          </div>
+          
+          {/* Treatment Cost and Payment Options */}
+          <div className="border-t pt-4">
+            <Label className="text-sm font-medium">Treatment Cost & Payment</Label>
+            <div className="grid grid-cols-2 gap-3 mt-2">
+              <div>
+                <Label htmlFor="cost" className="text-xs">Cost</Label>
+                <Input
+                  id="cost"
+                  type="number"
+                  step="0.01"
+                  value={treatmentCost}
+                  onChange={(e) => setTreatmentCost(parseFloat(e.target.value) || 0)}
+                  placeholder="0.00"
+                />
+              </div>
+              <div>
+                <Label htmlFor="currency" className="text-xs">Currency</Label>
+                <Select value={treatmentCurrency} onValueChange={setTreatmentCurrency}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="EUR">EUR (€)</SelectItem>
+                    <SelectItem value="RSD">RSD (дин)</SelectItem>
+                    <SelectItem value="CHF">CHF (Fr)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-2 mt-3">
+              <input
+                type="checkbox"
+                id="outstanding"
+                checked={createOutstandingBalance}
+                onChange={(e) => setCreateOutstandingBalance(e.target.checked)}
+                className="rounded"
+              />
+              <Label htmlFor="outstanding" className="text-xs">
+                Create outstanding balance (patient owes this amount)
+              </Label>
+            </div>
+            
+            {treatmentCost === 0 && (
+              <p className="text-xs text-gray-500 mt-2">
+                Estimated cost: {treatmentCurrency === 'EUR' ? '€' : treatmentCurrency === 'RSD' ? '' : 'Fr'}{(getEstimatedCost(condition) / 100).toFixed(2)}{treatmentCurrency === 'RSD' ? ' дин' : ''}
+              </p>
+            )}
           </div>
           
           <div className="flex justify-end gap-2">

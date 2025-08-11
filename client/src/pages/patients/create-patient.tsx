@@ -1,6 +1,7 @@
 import { Layout } from "@/components/layout/layout";
 import { PatientForm } from "@/components/patients/patient-form";
 import { useCreatePatient, useUpdatePatient, usePatient } from "@/hooks/use-patients";
+import { useCreatePatientFile } from "@/hooks/use-files";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation, useParams } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,6 +17,7 @@ export default function CreatePatientPage() {
   
   const createPatientMutation = useCreatePatient();
   const updatePatientMutation = useUpdatePatient();
+  const createFileMutation = useCreatePatientFile();
   const { toast } = useToast();
 
   // Fetch patient data if in edit mode
@@ -23,13 +25,34 @@ export default function CreatePatientPage() {
     isEditMode ? parseInt(id!) : undefined
   );
 
-  const handleSubmit = async (data: InsertPatient) => {
+  const handleSubmit = async (data: InsertPatient, files?: File[]) => {
     try {
       if (isEditMode && patient) {
         await updatePatientMutation.mutateAsync({ 
           id: patient.id, 
           patient: data 
         });
+        
+        // Upload files if any
+        if (files && files.length > 0) {
+          for (const file of files) {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('patientId', patient.id.toString());
+            formData.append('category', 'document');
+            formData.append('description', `Patient document: ${file.name}`);
+
+            try {
+              await fetch('/api/files', {
+                method: 'POST',
+                body: formData,
+              });
+            } catch (fileError) {
+              console.error('Failed to upload file:', file.name, fileError);
+            }
+          }
+        }
+        
         toast({
           title: "Success",
           description: "Patient updated successfully",
@@ -37,6 +60,27 @@ export default function CreatePatientPage() {
         setLocation(`/patients/${patient.id}`);
       } else {
         const newPatient = await createPatientMutation.mutateAsync(data);
+        
+        // Upload files if any
+        if (files && files.length > 0) {
+          for (const file of files) {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('patientId', newPatient.id.toString());
+            formData.append('category', 'document');
+            formData.append('description', `Patient document: ${file.name}`);
+
+            try {
+              await fetch('/api/files', {
+                method: 'POST',
+                body: formData,
+              });
+            } catch (fileError) {
+              console.error('Failed to upload file:', file.name, fileError);
+            }
+          }
+        }
+        
         toast({
           title: "Success",
           description: "Patient created successfully",
@@ -114,7 +158,6 @@ export default function CreatePatientPage() {
               onSubmit={handleSubmit}
               loading={createPatientMutation.isPending || updatePatientMutation.isPending}
               onCancel={handleCancel}
-              isEditMode={isEditMode}
             />
           </CardContent>
         </Card>

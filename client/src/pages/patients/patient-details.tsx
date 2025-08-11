@@ -10,6 +10,7 @@ import { TreatmentHistoryPanel } from "@/components/patients/treatment-history-p
 import { FinancialRecordModal } from "@/components/patients/financial-record-modal";
 import { AppointmentBookingModal } from "@/components/appointments/appointment-booking-modal";
 import { ClinicalPhotoTimeline } from "@/components/patients/clinical-photo-timeline";
+import { PatientAvatar } from "@/components/patients/patient-avatar";
 import { usePatient } from "@/hooks/use-patients";
 import { usePatientFiles } from "@/hooks/use-files";
 import { useAppointments } from "@/hooks/use-appointments";
@@ -38,9 +39,15 @@ export default function PatientDetailsPage() {
   // Calculate financial totals from actual data
   const treatmentsArray = Array.isArray(treatments) ? treatments : [];
   const paymentsArray = Array.isArray(payments) ? payments : [];
+  
+  // Separate actual payments from outstanding balances
+  const actualPayments = paymentsArray.filter((payment: any) => payment.paymentMethod !== 'outstanding');
+  const outstandingBalances = paymentsArray.filter((payment: any) => payment.paymentMethod === 'outstanding');
+  
   const totalTreatmentCost = treatmentsArray.reduce((sum: number, treatment: any) => sum + treatment.cost, 0);
-  const totalPaid = paymentsArray.reduce((sum: number, payment: any) => sum + payment.amount, 0);
-  const outstanding = totalTreatmentCost - totalPaid;
+  const totalPaid = actualPayments.reduce((sum: number, payment: any) => sum + payment.amount, 0);
+  const totalOutstandingBalance = outstandingBalances.reduce((sum: number, payment: any) => sum + payment.amount, 0);
+  const outstanding = totalTreatmentCost - totalPaid + totalOutstandingBalance;
 
   // Calculate patient age for odontogram
   const patientAge = patient ? new Date().getFullYear() - new Date(patient.dateOfBirth).getFullYear() : 25;
@@ -101,6 +108,12 @@ export default function PatientDetailsPage() {
               <Button variant="outline">
                 <Edit className="h-4 w-4 mr-2" />
                 Edit Patient
+              </Button>
+            </Link>
+            <Link href="/medical-records">
+              <Button variant="outline">
+                <FileText className="h-4 w-4 mr-2" />
+                Medical Records
               </Button>
             </Link>
             <Button className="bg-blue-600 hover:bg-blue-700">
@@ -330,6 +343,24 @@ export default function PatientDetailsPage() {
 
           {/* Sidebar */}
           <div className="space-y-6">
+            {/* Patient Profile Card */}
+            <Card>
+              <CardContent className="p-6 text-center">
+                <PatientAvatar 
+                  patient={patient} 
+                  size="xl" 
+                  className="mx-auto mb-4 border-2 border-white dark:border-gray-800 shadow-lg"
+                />
+                <h3 className="font-semibold text-lg text-gray-900 dark:text-gray-100">
+                  {patient.firstName} {patient.lastName}
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                  Patient ID: #{patient.id}
+                </p>
+                <Badge className="status-badge status-active">Active Patient</Badge>
+              </CardContent>
+            </Card>
+
             {/* Quick Stats */}
             <Card>
               <CardHeader>
@@ -377,22 +408,54 @@ export default function PatientDetailsPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {paymentsArray.length > 0 ? (
+                  {actualPayments.length > 0 ? (
                     <div className="space-y-2">
-                      {paymentsArray.slice(0, 5).map((payment: any) => (
+                      {actualPayments.slice(0, 5).map((payment: any) => (
                         <div key={payment.id} className="flex items-center justify-between p-2 bg-green-50 border border-green-100 rounded-lg">
                           <div>
                             <p className="text-xs font-medium text-green-900">{payment.paymentMethod}</p>
                             <p className="text-xs text-green-600">
                               {format(new Date(payment.paidAt), 'MMM dd, yyyy')}
+                              {payment.doctorName && <span className="ml-1">• {payment.doctorName}</span>}
                             </p>
+                            {payment.treatmentContext && (
+                              <p className="text-xs text-green-500">{payment.treatmentContext}</p>
+                            )}
                           </div>
-                          <p className="text-sm font-semibold text-green-700">€{(payment.amount / 100).toFixed(2)}</p>
+                          <p className="text-sm font-semibold text-green-700">
+                            {payment.currency === 'EUR' ? '€' : payment.currency === 'RSD' ? 'дин' : 'Fr'}{(payment.amount / 100).toFixed(2)}
+                          </p>
                         </div>
                       ))}
                     </div>
                   ) : (
                     <p className="text-sm text-gray-500 text-center py-4">No payments recorded</p>
+                  )}
+                  
+                  {/* Outstanding Balances Section */}
+                  {outstandingBalances.length > 0 && (
+                    <div className="border-t pt-3">
+                      <p className="text-sm font-medium text-red-600 mb-2">Outstanding Balances</p>
+                      <div className="space-y-2">
+                        {outstandingBalances.slice(0, 3).map((payment: any) => (
+                          <div key={payment.id} className="flex items-center justify-between p-2 bg-red-50 border border-red-100 rounded-lg">
+                            <div>
+                              <p className="text-xs font-medium text-red-900">Outstanding</p>
+                              <p className="text-xs text-red-600">
+                                {format(new Date(payment.paidAt), 'MMM dd, yyyy')}
+                                {payment.doctorName && <span className="ml-1">• {payment.doctorName}</span>}
+                              </p>
+                              {payment.treatmentContext && (
+                                <p className="text-xs text-red-500">{payment.treatmentContext}</p>
+                              )}
+                            </div>
+                            <p className="text-sm font-semibold text-red-700">
+                              {payment.currency === 'EUR' ? '€' : payment.currency === 'RSD' ? 'дин' : 'Fr'}{(payment.amount / 100).toFixed(2)}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   )}
                   
                   <div className="pt-2 border-t">

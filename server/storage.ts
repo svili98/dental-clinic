@@ -67,7 +67,8 @@ export interface IStorage {
     description: string; 
     toothNumbers?: string; 
     duration: number; 
-    cost: number; 
+    cost: number;
+    currency: string;
     notes?: string; 
   }): Promise<TreatmentHistory>;
   
@@ -78,7 +79,10 @@ export interface IStorage {
     appointmentId?: number;
     treatmentId?: number;
     amount: number;
+    currency?: string;
     paymentMethod: string;
+    treatmentContext?: string;
+    doctorName?: string;
     notes?: string;
   }): Promise<PaymentRecord>;
   
@@ -784,7 +788,8 @@ export class MemStorage implements IStorage {
     description: string; 
     toothNumbers?: string; 
     duration: number; 
-    cost: number; 
+    cost: number;
+    currency: string;
     notes?: string; 
   }): Promise<TreatmentHistory> {
     const treatment: TreatmentHistory = {
@@ -814,7 +819,10 @@ export class MemStorage implements IStorage {
     appointmentId?: number;
     treatmentId?: number;
     amount: number;
+    currency?: string;
     paymentMethod: string;
+    treatmentContext?: string;
+    doctorName?: string;
     notes?: string;
   }): Promise<PaymentRecord> {
     const payment: PaymentRecord = {
@@ -822,6 +830,9 @@ export class MemStorage implements IStorage {
       ...paymentData,
       appointmentId: paymentData.appointmentId || null,
       treatmentId: paymentData.treatmentId || null,
+      currency: paymentData.currency || "EUR",
+      treatmentContext: paymentData.treatmentContext || null,
+      doctorName: paymentData.doctorName || null,
       notes: paymentData.notes || null,
       paymentStatus: "completed",
       paidAt: new Date(),

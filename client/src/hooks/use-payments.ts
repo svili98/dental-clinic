@@ -13,16 +13,22 @@ export function useCreatePaymentRecord() {
     mutationFn: async ({ 
       patientId, 
       amount, 
+      currency,
       paymentMethod, 
       appointmentId, 
-      treatmentId, 
+      treatmentId,
+      treatmentContext,
+      doctorName,
       notes 
     }: { 
       patientId: number;
       amount: number;
+      currency?: string;
       paymentMethod: string;
       appointmentId?: number;
       treatmentId?: number;
+      treatmentContext?: string;
+      doctorName?: string;
       notes?: string;
     }) => {
       const response = await fetch(`/api/patients/${patientId}/payments`, {
@@ -32,9 +38,12 @@ export function useCreatePaymentRecord() {
         },
         body: JSON.stringify({ 
           amount, 
+          currency,
           paymentMethod, 
           appointmentId, 
-          treatmentId, 
+          treatmentId,
+          treatmentContext,
+          doctorName,
           notes 
         }),
       });

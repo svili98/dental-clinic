@@ -15,7 +15,7 @@ import { format } from "date-fns";
 
 interface PatientFormProps {
   initialData?: Patient;
-  onSubmit: (data: InsertPatient) => void;
+  onSubmit: (data: InsertPatient, files?: File[]) => void;
   loading?: boolean;
   onCancel?: () => void;
 }
@@ -77,7 +77,7 @@ export function PatientForm({ initialData, onSubmit, loading, onCancel }: Patien
       ...data,
       medicalConditions: selectedConditions,
     };
-    onSubmit(formDataWithConditions);
+    onSubmit(formDataWithConditions, uploadedFiles);
   };
 
   return (
@@ -261,7 +261,10 @@ export function PatientForm({ initialData, onSubmit, loading, onCancel }: Patien
                 <h3 className="text-lg font-medium text-gray-900 mb-4">Patient Documents</h3>
                 <p className="text-sm text-gray-500 mb-4">Upload medical records, ID documents, or other relevant files:</p>
                 
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+                <div 
+                  className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors cursor-pointer"
+                  onClick={() => document.getElementById('file-upload')?.click()}
+                >
                   <Upload className="mx-auto h-8 w-8 text-gray-400 mb-2" />
                   <p className="text-sm text-gray-600 mb-2">Drag and drop files here, or click to browse</p>
                   <input
@@ -272,11 +275,9 @@ export function PatientForm({ initialData, onSubmit, loading, onCancel }: Patien
                     className="hidden"
                     id="file-upload"
                   />
-                  <label htmlFor="file-upload" className="cursor-pointer">
-                    <Button type="button" variant="outline" size="sm">
-                      Choose Files
-                    </Button>
-                  </label>
+                  <Button type="button" variant="outline" size="sm" onClick={(e) => e.stopPropagation()}>
+                    Choose Files
+                  </Button>
                   <p className="text-xs text-gray-500 mt-2">Supported: PDF, JPG, PNG, DOC, DOCX (max 10MB each)</p>
                 </div>
 
