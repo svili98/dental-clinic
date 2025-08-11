@@ -100,6 +100,11 @@ export function FileList({ patientId }: FileListProps) {
     setPreviewOpen(true);
   };
 
+  const handleDownload = (file: any) => {
+    // In demo mode, show a message about download functionality
+    alert(`Download functionality demo:\n\nIn a production environment, this would download:\n• File: ${file.fileName}\n• Size: ${formatFileSize(file.fileSize)}\n• Type: ${file.fileType}\n\nThe file would be retrieved from secure storage and downloaded to your device.`)
+  };
+
   if (!patientId) {
     return (
       <Card>
@@ -194,7 +199,7 @@ export function FileList({ patientId }: FileListProps) {
               return (
                 <div 
                   key={file.id} 
-                  className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                  className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow flex flex-col"
                 >
                   <div className="flex items-center space-x-3 mb-3">
                     <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${categoryColors}`}>
@@ -221,7 +226,7 @@ export function FileList({ patientId }: FileListProps) {
                   </div>
                   
                   {/* File Metadata */}
-                  <div className="space-y-2 mb-3">
+                  <div className="space-y-2 mb-3 flex-1">
                     {file.description && (
                       <p className="text-xs text-gray-600 line-clamp-2">
                         {file.description}
@@ -268,24 +273,29 @@ export function FileList({ patientId }: FileListProps) {
                     )}
                   </div>
                   
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center justify-between pt-2 border-t border-gray-100">
                     <Button 
                       variant="ghost" 
                       size="sm" 
-                      className="text-blue-600 hover:text-blue-700"
+                      className="text-blue-600 hover:text-blue-700 flex-1 mr-1"
                       onClick={() => handlePreview(file)}
                     >
                       <Eye className="h-3 w-3 mr-1" />
                       View
                     </Button>
-                    <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-700">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-gray-600 hover:text-gray-700 flex-1 mx-1"
+                      onClick={() => handleDownload(file)}
+                    >
                       <Download className="h-3 w-3 mr-1" />
                       Download
                     </Button>
                     <Button 
                       variant="ghost" 
                       size="sm" 
-                      className="text-red-600 hover:text-red-700"
+                      className="text-red-600 hover:text-red-700 flex-1 ml-1"
                       onClick={() => handleDelete(file.id, file.fileName)}
                       disabled={deleteFileMutation.isPending}
                     >

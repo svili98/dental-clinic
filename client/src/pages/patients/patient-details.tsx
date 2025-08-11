@@ -9,6 +9,7 @@ import { MedicalNotes } from "@/components/patients/medical-notes";
 import { TreatmentHistoryPanel } from "@/components/patients/treatment-history-panel";
 import { FinancialRecordModal } from "@/components/patients/financial-record-modal";
 import { AppointmentBookingModal } from "@/components/appointments/appointment-booking-modal";
+import { ClinicalPhotoTimeline } from "@/components/patients/clinical-photo-timeline";
 import { usePatient } from "@/hooks/use-patients";
 import { usePatientFiles } from "@/hooks/use-files";
 import { useAppointments } from "@/hooks/use-appointments";
@@ -18,6 +19,7 @@ import { useTranslation } from "@/lib/i18n";
 import { Link, useParams } from "wouter";
 import { useState } from "react";
 import { ArrowLeft, Edit, Calendar, FileText, Phone, Mail, MapPin } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format } from "date-fns";
 
 export default function PatientDetailsPage() {
@@ -459,10 +461,27 @@ export default function PatientDetailsPage() {
           <TreatmentHistoryPanel patientId={patientId} />
         </div>
 
-        {/* Files Section */}
+        {/* Files and Photos Section */}
         <div className="space-y-6">
-          <FileUpload patientId={patientId} />
-          <FileList patientId={patientId} />
+          <Tabs defaultValue="upload" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="upload">Upload Files</TabsTrigger>
+              <TabsTrigger value="photos">Clinical Photos Timeline</TabsTrigger>
+              <TabsTrigger value="files">All Files</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="upload" className="space-y-6">
+              <FileUpload patientId={patientId} />
+            </TabsContent>
+            
+            <TabsContent value="photos">
+              <ClinicalPhotoTimeline patientId={patientId} />
+            </TabsContent>
+            
+            <TabsContent value="files">
+              <FileList patientId={patientId} />
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
 

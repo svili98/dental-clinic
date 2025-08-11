@@ -37,34 +37,34 @@
 }
 
 .dark {
-  --background: hsl(240, 10%, 3.9%);
-  --foreground: hsl(0, 0%, 98%);
+  --background: hsl(240, 10%, 6%);
+  --foreground: hsl(0, 0%, 95%);
   --muted: hsl(240, 3.7%, 15.9%);
-  --muted-foreground: hsl(240, 5%, 64.9%);
-  --popover: hsl(240, 10%, 3.9%);
-  --popover-foreground: hsl(0, 0%, 98%);
-  --card: hsl(240, 10%, 3.9%);
-  --card-foreground: hsl(0, 0%, 98%);
-  --border: hsl(240, 3.7%, 15.9%);
+  --muted-foreground: hsl(240, 5%, 75%);
+  --popover: hsl(240, 10%, 8%);
+  --popover-foreground: hsl(0, 0%, 95%);
+  --card: hsl(240, 10%, 8%);
+  --card-foreground: hsl(0, 0%, 95%);
+  --border: hsl(240, 3.7%, 20%);
   --input: hsl(240, 3.7%, 15.9%);
-  --primary: hsl(207, 90%, 54%);
+  --primary: hsl(207, 90%, 60%);
   --primary-foreground: hsl(211, 100%, 99%);
   --secondary: hsl(240, 3.7%, 15.9%);
-  --secondary-foreground: hsl(0, 0%, 98%);
+  --secondary-foreground: hsl(0, 0%, 95%);
   --accent: hsl(240, 3.7%, 15.9%);
-  --accent-foreground: hsl(0, 0%, 98%);
-  --destructive: hsl(0, 62.8%, 30.6%);
+  --accent-foreground: hsl(0, 0%, 95%);
+  --destructive: hsl(0, 62.8%, 50%);
   --destructive-foreground: hsl(0, 0%, 98%);
   --ring: hsl(240, 4.9%, 83.9%);
   --radius: 0.5rem;
   
-  /* Dark theme medical colors */
-  --medical-primary: hsl(207, 90%, 54%);
-  --medical-success: hsl(122, 39%, 49%);
-  --medical-warning: hsl(45, 93%, 47%);
-  --medical-error: hsl(0, 65%, 51%);
-  --medical-bg: hsl(240, 10%, 3.9%);
-  --medical-sidebar: hsl(240, 10%, 3.9%);
+  /* Dark theme medical colors with better contrast */
+  --medical-primary: hsl(207, 90%, 60%);
+  --medical-success: hsl(122, 39%, 55%);
+  --medical-warning: hsl(45, 93%, 55%);
+  --medical-error: hsl(0, 65%, 55%);
+  --medical-bg: hsl(240, 10%, 6%);
+  --medical-sidebar: hsl(240, 10%, 8%);
 }
 
 @layer base {
@@ -99,7 +99,41 @@
   }
 
   .table-row-hover:hover {
-    @apply bg-gray-50 dark:bg-gray-800;
+    @apply bg-gray-50 dark:bg-gray-700;
+  }
+  
+  /* Enhanced dark mode text contrast */
+  .dark .text-gray-600 {
+    @apply text-gray-300;
+  }
+  
+  .dark .text-gray-500 {
+    @apply text-gray-400;
+  }
+  
+  .dark .text-gray-900 {
+    @apply text-white;
+  }
+  
+  .dark .text-gray-800 {
+    @apply text-gray-100;
+  }
+  
+  .dark .text-gray-700 {
+    @apply text-gray-200;
+  }
+  
+  /* Better card contrast in dark mode */
+  .dark .bg-white {
+    @apply bg-gray-800;
+  }
+  
+  .dark .border-gray-200 {
+    @apply border-gray-700;
+  }
+  
+  .dark .bg-gray-50 {
+    @apply bg-gray-800;
   }
 
   .status-badge {

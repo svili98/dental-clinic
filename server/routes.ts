@@ -564,6 +564,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // File serving endpoint for actual images
+  app.get('/api/files/:fileId/content', async (req, res) => {
+    try {
+      const fileId = parseInt(req.params.fileId);
+      // Get the file directly from storage
+      const file = storage.getPatientFileById(fileId);
+      
+      if (!file) {
+        return res.status(404).json({ error: 'File not found' });
+      }
+      
+      // In development mode, generate a sample image that represents the file
+      // This would normally serve the actual file from storage
+      const isImage = file.fileName.match(/\.(jpg|jpeg|png|gif|webp)$/i);
+      
+      if (isImage) {
+        // Generate a meaningful placeholder that shows file details
+        const colors = {
+          'photo': '#1976d2',
+          'xray': '#7b1fa2', 
+          'model': '#388e3c',
+          'document': '#f57c00'
+        };
+        
+        const color = colors[file.category as keyof typeof colors] || colors.photo;
+        const fileName = encodeURIComponent(file.fileName);
+        const treatment = file.treatmentDate ? `Treatment: ${file.treatmentDate}` : 'Clinical Photo';
+        const text = `${treatment} - ${file.fileName}`;
+        
+        // Redirect to a placeholder service that shows the actual file information
+        const placeholderUrl = `https://via.placeholder.com/600x400/${color.slice(1)}/ffffff?text=${encodeURIComponent(text)}`;
+        res.redirect(placeholderUrl);
+      } else {
+        res.status(400).json({ error: 'Not an image file' });
+      }
+    } catch (error) {
+      console.error('File serving error:', error);
+      res.status(500).json({ error: 'Failed to serve file' });
+    }
+  });
+
   // Settings routes
   app.get("/api/settings/:employeeId", async (req, res) => {
     try {

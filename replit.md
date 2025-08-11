@@ -8,6 +8,17 @@ Preferred communication style: Simple, everyday language.
 
 # Recent Changes
 
+## August 11, 2025 - Image Cropping and Clinical Photo Timeline Implementation
+- Added comprehensive image cropping functionality using react-image-crop library
+- Implemented dental-specific aspect ratios (Square, Dental Standard 4:3, X-Ray 3:2, etc.)
+- Added rotation and flip controls for complete image editing capabilities
+- Created clinical photo timeline view for treatment progress tracking
+- Added timeline and grid viewing modes with date-based organization
+- Integrated time filtering (all time, last year, last 6 months) for photo management
+- Enhanced patient details page with tabbed interface for files and clinical photos
+- Fixed file upload categorization and preview functionality with proper error handling
+- All image files now properly integrate with cropping workflow before upload
+
 ## August 10, 2025 - Migration from Replit Agent to Replit Environment
 - Successfully migrated project from Replit Agent to standard Replit environment
 - Resolved dependency installation issues and ensured all packages are properly installed

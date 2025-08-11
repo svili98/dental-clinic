@@ -700,6 +700,10 @@ export class MemStorage implements IStorage {
     return this.patientFiles.delete(id);
   }
 
+  getPatientFileById(fileId: number): PatientFile | undefined {
+    return this.patientFiles.get(fileId);
+  }
+
   async getMedicalConditions(): Promise<MedicalCondition[]> {
     return Array.from(this.medicalConditions.values());
   }

@@ -254,6 +254,10 @@ const englishTranslations: Translations = {
   teethWhitening: "Teeth Whitening",
   periodontalTreatment: "Periodontal Treatment",
   emergencyTreatment: "Emergency Treatment",
+  
+  // Page Titles
+  patientManagement: "Patient Management",
+  patientManagementDesc: "Manage patient records, appointments, and medical history",
 };
 
 const serbianTranslations: Translations = {
@@ -381,6 +385,10 @@ const serbianTranslations: Translations = {
   teethWhitening: "Beljenje zuba",
   periodontalTreatment: "Parodontalni tretman",
   emergencyTreatment: "Hitni tretman",
+  
+  // Page Titles
+  patientManagement: "Upravljanje pacijentima",
+  patientManagementDesc: "Upravljajte kartonima pacijenata, terminima i medicinskom istorijom",
 };
 
 export const translations = {

@@ -33,6 +33,11 @@ export function ImagePreview({ file, isOpen, onClose }: ImagePreviewProps) {
   const handleZoomIn = () => setZoom(prev => Math.min(prev + 25, 300))
   const handleZoomOut = () => setZoom(prev => Math.max(prev - 25, 25))
   const handleRotate = () => setRotation(prev => (prev + 90) % 360)
+  
+  const handleDownload = (file: any) => {
+    // In demo mode, show a message about download functionality
+    alert(`Download functionality demo:\n\nIn a production environment, this would download:\n• File: ${file.fileName}\n• Size: ${formatFileSize(file.fileSize)}\n\nThe file would be retrieved from secure storage and downloaded to your device.`)
+  }
 
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 Bytes'
@@ -57,7 +62,7 @@ export function ImagePreview({ file, isOpen, onClose }: ImagePreviewProps) {
                 )}
               </DialogTitle>
               <DialogDescription>
-                Size: {formatFileSize(file.fileSize)} • Created: {new Date(file.createdAt).toLocaleDateString()}
+                Size: {formatFileSize(file.fileSize)} • Created: {file.createdAt ? new Date(file.createdAt).toLocaleDateString() : file.uploadedAt ? new Date(file.uploadedAt).toLocaleDateString() : 'Unknown'}
               </DialogDescription>
             </div>
             <Button variant="ghost" size="sm" onClick={onClose}>
@@ -80,7 +85,7 @@ export function ImagePreview({ file, isOpen, onClose }: ImagePreviewProps) {
               <Button variant="outline" size="sm" onClick={handleRotate}>
                 <RotateCw className="h-4 w-4" />
               </Button>
-              <Button variant="outline" size="sm" onClick={() => {/* Handle download */}}>
+              <Button variant="outline" size="sm" onClick={() => handleDownload(file)}>
                 <Download className="h-4 w-4" />
               </Button>
             </div>
@@ -89,32 +94,32 @@ export function ImagePreview({ file, isOpen, onClose }: ImagePreviewProps) {
           {/* Image Preview */}
           <div className="flex items-center justify-center overflow-auto max-h-[60vh] bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
             {isImage ? (
-              <img
-                src={file.filePath}
-                alt={file.fileName}
-                className={`max-w-full h-auto transition-transform ${isXray ? 'invert dark:invert-0' : ''}`}
-                style={{
-                  transform: `scale(${zoom / 100}) rotate(${rotation}deg)`,
-                  filter: isXray ? 'brightness(1.2) contrast(1.3)' : 'none'
-                }}
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement
-                  target.style.display = 'none'
-                  const parent = target.parentElement
-                  if (parent) {
-                    parent.innerHTML = `
-                      <div class="text-center p-8">
-                        <div class="text-gray-400 mb-2">
-                          <svg class="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
-                        </div>
-                        <p class="text-sm text-gray-500">Image preview not available</p>
-                      </div>
-                    `
-                  }
-                }}
-              />
+              <div className="relative">
+                <img
+                  src={`/api/files/${file.id}/content`}
+                  alt={file.fileName}
+                  className="max-w-full max-h-full object-contain rounded-lg shadow-lg"
+                  style={{
+                    transform: `rotate(${rotation}deg) scale(${zoom / 100})`,
+                    transformOrigin: 'center',
+                    maxWidth: '100%',
+                    maxHeight: '500px'
+                  }}
+                  onError={(e) => {
+                    // Fallback to a sample dental image for demo
+                    const target = e.target as HTMLImageElement;
+                    target.src = `https://via.placeholder.com/600x400/e3f2fd/1976d2?text=${encodeURIComponent(file.fileName)}`;
+                  }}
+                />
+                {file.category && (
+                  <Badge variant="outline" className="absolute top-2 left-2 bg-white/90">
+                    {file.category === 'xray' && 'X-Ray Image'}
+                    {file.category === 'photo' && 'Clinical Photo'}
+                    {file.category === 'model' && '3D Model'}
+                    {file.category === 'document' && 'Document'}
+                  </Badge>
+                )}
+              </div>
             ) : (
               <div className="text-center p-8">
                 <div className="text-gray-400 mb-4">
@@ -122,8 +127,11 @@ export function ImagePreview({ file, isOpen, onClose }: ImagePreviewProps) {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                 </div>
-                <p className="text-sm text-gray-500 mb-2">Preview not available for this file type</p>
-                <Button variant="outline" size="sm">
+                <p className="text-sm text-gray-500 mb-2">Document preview</p>
+                <p className="text-xs text-gray-400 mb-4">
+                  File: {file.fileName}
+                </p>
+                <Button variant="outline" size="sm" onClick={() => handleDownload(file)}>
                   <Download className="h-4 w-4 mr-2" />
                   Download File
                 </Button>

@@ -9,8 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useCreatePatientFile } from "@/hooks/use-files";
-import { CloudUpload, FileText, Image, Package, Camera, Scan, Zap, Box, X } from "lucide-react";
+import { CloudUpload, FileText, Image, Package, Camera, Scan, Zap, Box, X, Crop } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { ImageCropper } from "./image-cropper";
 import type { InsertPatientFile } from "@shared/schema";
 
 interface FileUploadProps {
@@ -77,6 +78,8 @@ export function FileUpload({ patientId, onUploadSuccess }: FileUploadProps) {
     treatmentDate: ""
   });
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const [cropperFile, setCropperFile] = useState<File | null>(null);
+  const [showCropper, setShowCropper] = useState(false);
   const createFileMutation = useCreatePatientFile();
   const { toast } = useToast();
 
@@ -85,12 +88,23 @@ export function FileUpload({ patientId, onUploadSuccess }: FileUploadProps) {
   };
 
   const getCategoryByFileType = (fileType: string): keyof typeof DENTAL_CATEGORIES => {
-    // Auto-detect category based on file type
-    for (const [cat, config] of Object.entries(DENTAL_CATEGORIES)) {
-      if (Object.keys(config.accept).some(acceptedType => fileType.startsWith(acceptedType))) {
-        return cat as keyof typeof DENTAL_CATEGORIES;
+    // Auto-detect category based on file type - check each category in priority order
+    if (fileType.startsWith('image/')) {
+      // For images, default to clinical photos unless it's a medical image format
+      if (fileType.includes('dicom') || fileType.includes('tiff')) {
+        return 'xray';
       }
+      return 'photo';
     }
+    
+    if (fileType.startsWith('model/') || fileType.includes('stl') || fileType.includes('obj')) {
+      return 'model';
+    }
+    
+    if (fileType.startsWith('application/pdf') || fileType.startsWith('application/msword') || fileType.startsWith('text/')) {
+      return 'document';
+    }
+    
     return 'document'; // default fallback
   };
 
@@ -156,6 +170,10 @@ export function FileUpload({ patientId, onUploadSuccess }: FileUploadProps) {
     if (acceptedFiles.length === 1) {
       const detectedCategory = getCategoryByFileType(acceptedFiles[0].type);
       setSelectedCategory(detectedCategory);
+      toast({
+        title: "Category Auto-detected",
+        description: `File categorized as: ${DENTAL_CATEGORIES[detectedCategory].label}`,
+      });
     }
 
     setPendingFiles(acceptedFiles);
@@ -323,13 +341,28 @@ export function FileUpload({ patientId, onUploadSuccess }: FileUploadProps) {
                         {(file.size / 1024 / 1024).toFixed(2)} MB • {file.type}
                       </p>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setPendingFiles(files => files.filter((_, i) => i !== index))}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
+                    <div className="flex items-center space-x-2">
+                      {file.type.startsWith('image/') && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setCropperFile(file);
+                            setShowCropper(true);
+                          }}
+                        >
+                          <Crop className="h-3 w-3 mr-1" />
+                          Crop
+                        </Button>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setPendingFiles(files => files.filter((_, i) => i !== index))}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 );
               })}
@@ -427,6 +460,28 @@ export function FileUpload({ patientId, onUploadSuccess }: FileUploadProps) {
             </div>
             <Progress value={uploadProgress} className="w-full" />
           </div>
+        )}
+
+        {/* Image Cropper Modal */}
+        {cropperFile && (
+          <ImageCropper
+            file={cropperFile}
+            isOpen={showCropper}
+            onClose={() => {
+              setShowCropper(false);
+              setCropperFile(null);
+            }}
+            onCropComplete={(croppedFile) => {
+              // Replace the original file with the cropped version
+              setPendingFiles(files => 
+                files.map(f => f === cropperFile ? croppedFile : f)
+              );
+              toast({
+                title: "Image Cropped",
+                description: "Image has been cropped and is ready for upload",
+              });
+            }}
+          />
         )}
       </CardContent>
     </Card>

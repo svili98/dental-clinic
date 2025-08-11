@@ -48,18 +48,10 @@ export default function PatientsPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900">Patient Management</h1>
-            <p className="text-gray-500 mt-1">Manage patient records, appointments, and medical history</p>
+            <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Patient Management</h1>
+            <p className="text-gray-500 dark:text-gray-400 mt-1">Manage patient records, appointments, and medical history</p>
           </div>
           <div className="flex items-center space-x-3">
-            <Button variant="outline" size="sm">
-              <FileSpreadsheet className="h-4 w-4 mr-2" />
-              Export
-            </Button>
-            <Button variant="outline" size="sm">
-              <Filter className="h-4 w-4 mr-2" />
-              Filter
-            </Button>
             <Link href="/patients/create">
               <Button className="bg-blue-600 hover:bg-blue-700" data-testid="button-add-patient">
                 <Plus className="h-4 w-4 mr-2" />
