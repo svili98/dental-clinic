@@ -11,6 +11,7 @@ import { format } from "date-fns";
 import { useTreatmentHistory, useCreateTreatmentHistory } from "@/hooks/use-treatment-history";
 import { useCreateToothRecord } from "@/hooks/use-tooth-records";
 import { useToast } from "@/hooks/use-toast";
+import { formatCurrency, SUPPORTED_CURRENCIES, type Currency } from "@/lib/currency";
 
 interface TreatmentHistoryPanelProps {
   patientId: number;
@@ -151,15 +152,8 @@ export function TreatmentHistoryPanel({ patientId }: TreatmentHistoryPanelProps)
     }
   };
 
-  const formatCurrency = (amountInSmallestUnit: number, currency: string) => {
-    const amount = (amountInSmallestUnit / 100).toFixed(2);
-    switch (currency) {
-      case 'EUR': return `€${amount}`;
-      case 'RSD': return `${amount} дин`;
-      case 'CHF': return `Fr ${amount}`;
-      default: return `€${amount}`;
-    }
-  };
+  // Use the centralized currency formatting function
+  // Note: This local function is replaced by the imported formatCurrency from @/lib/currency
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -264,9 +258,11 @@ export function TreatmentHistoryPanel({ patientId }: TreatmentHistoryPanelProps)
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="EUR">EUR (€)</SelectItem>
-                        <SelectItem value="RSD">RSD (дин)</SelectItem>
-                        <SelectItem value="CHF">CHF (Fr)</SelectItem>
+                        {SUPPORTED_CURRENCIES.map((currency) => (
+                          <SelectItem key={currency.value} value={currency.value}>
+                            {currency.label}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>

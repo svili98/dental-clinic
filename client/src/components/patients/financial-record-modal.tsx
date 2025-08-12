@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { useCreatePaymentRecord } from "@/hooks/use-payments";
 import { useToast } from "@/hooks/use-toast";
+import { SUPPORTED_CURRENCIES } from "@/lib/currency";
 import { CreditCard, DollarSign } from "lucide-react";
 
 interface FinancialRecordModalProps {
@@ -196,9 +197,11 @@ export function FinancialRecordModal({ isOpen, onClose, patientId }: FinancialRe
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="EUR">EUR (€)</SelectItem>
-                      <SelectItem value="RSD">RSD (дин)</SelectItem>
-                      <SelectItem value="CHF">CHF (Fr)</SelectItem>
+                      {SUPPORTED_CURRENCIES.map((currency) => (
+                        <SelectItem key={currency.value} value={currency.value}>
+                          {currency.label}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -290,9 +293,11 @@ export function FinancialRecordModal({ isOpen, onClose, patientId }: FinancialRe
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="EUR">EUR (€)</SelectItem>
-                      <SelectItem value="RSD">RSD (дин)</SelectItem>
-                      <SelectItem value="CHF">CHF (Fr)</SelectItem>
+                      {SUPPORTED_CURRENCIES.map((currency) => (
+                        <SelectItem key={currency.value} value={currency.value}>
+                          {currency.label}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>

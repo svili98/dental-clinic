@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertPatientSchema, insertAppointmentSchema, insertPatientFileSchema, insertToothRecordSchema, insertRoleSchema, insertEmployeeSchema, insertSettingsSchema, loginSchema } from "@shared/schema";
+import { insertPatientSchema, insertAppointmentSchema, insertPatientFileSchema, insertToothRecordSchema, insertRoleSchema, insertEmployeeSchema, insertSettingsSchema, loginSchema, insertFinancialTransactionSchema } from "@shared/schema";
 import { getSetmoreService } from "./services/setmore-service";
 import { z } from "zod";
 
@@ -364,6 +364,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(payments);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch payment records" });
+    }
+  });
+
+  // Financial Transactions Routes (New System)
+  app.post("/api/financial-transactions", async (req, res) => {
+    try {
+      const validatedData = insertFinancialTransactionSchema.parse(req.body);
+      const transaction = await storage.createFinancialTransaction(validatedData);
+      res.status(201).json(transaction);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Validation error", errors: error.errors });
+      }
+      console.error('Financial transaction creation error:', error);
+      res.status(500).json({ message: "Failed to create financial transaction" });
+    }
+  });
+
+  app.get("/api/patients/:patientId/transactions", async (req, res) => {
+    try {
+      const patientId = parseInt(req.params.patientId);
+      const transactions = await storage.getPatientFinancialTransactions(patientId);
+      res.json(transactions);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch financial transactions" });
+    }
+  });
+
+  app.get("/api/patients/:patientId/financial-summary", async (req, res) => {
+    try {
+      const patientId = parseInt(req.params.patientId);
+      const summary = await storage.getPatientFinancialSummary(patientId);
+      res.json(summary);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch financial summary" });
+    }
+  });
+
+  app.patch("/api/financial-transactions/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { status, notes, authorizedBy } = req.body;
+      const transaction = await storage.updateFinancialTransaction(id, { status, notes, authorizedBy });
+      if (!transaction) {
+        return res.status(404).json({ message: "Transaction not found" });
+      }
+      res.json(transaction);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update transaction" });
     }
   });
 

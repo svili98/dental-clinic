@@ -7,7 +7,8 @@ import { FileUpload } from "@/components/files/file-upload";
 import { OdontogramISO } from "@/components/patients/odontogram-iso";
 import { MedicalNotes } from "@/components/patients/medical-notes";
 import { TreatmentHistoryPanel } from "@/components/patients/treatment-history-panel";
-import { FinancialRecordModal } from "@/components/patients/financial-record-modal";
+import { FinancialOverview } from "@/components/patients/financial-overview";
+import { TransactionHistory } from "@/components/patients/transaction-history";
 import { AppointmentBookingModal } from "@/components/appointments/appointment-booking-modal";
 import { ClinicalPhotoTimeline } from "@/components/patients/clinical-photo-timeline";
 import { PatientAvatar } from "@/components/patients/patient-avatar";
@@ -17,6 +18,7 @@ import { useAppointments } from "@/hooks/use-appointments";
 import { useTreatmentHistory } from "@/hooks/use-treatment-history";
 import { usePaymentRecords } from "@/hooks/use-payments";
 import { useTranslation } from "@/lib/i18n";
+import { calculateMultiCurrencyTotal, formatMultiCurrencyTotal, formatCurrency, type Currency } from "@/lib/currency";
 import { Link, useParams } from "wouter";
 import { useState } from "react";
 import { ArrowLeft, Edit, Calendar, FileText, Phone, Mail, MapPin } from "lucide-react";
@@ -26,7 +28,7 @@ import { format } from "date-fns";
 export default function PatientDetailsPage() {
   const params = useParams();
   const patientId = parseInt(params.id || "0");
-  const [financialModalOpen, setFinancialModalOpen] = useState(false);
+
   const [appointmentModalOpen, setAppointmentModalOpen] = useState(false);
   const { t } = useTranslation();
   
@@ -36,7 +38,7 @@ export default function PatientDetailsPage() {
   const { data: treatments } = useTreatmentHistory(patientId);
   const { data: payments } = usePaymentRecords(patientId);
 
-  // Calculate financial totals from actual data
+  // Calculate financial totals from actual data with multi-currency support
   const treatmentsArray = Array.isArray(treatments) ? treatments : [];
   const paymentsArray = Array.isArray(payments) ? payments : [];
   
@@ -44,9 +46,48 @@ export default function PatientDetailsPage() {
   const actualPayments = paymentsArray.filter((payment: any) => payment.paymentMethod !== 'outstanding');
   const outstandingBalances = paymentsArray.filter((payment: any) => payment.paymentMethod === 'outstanding');
   
-  const totalTreatmentCost = treatmentsArray.reduce((sum: number, treatment: any) => sum + treatment.cost, 0);
-  const totalPaid = actualPayments.reduce((sum: number, payment: any) => sum + payment.amount, 0);
-  const totalOutstandingBalance = outstandingBalances.reduce((sum: number, payment: any) => sum + payment.amount, 0);
+  // Calculate totals by currency
+  const treatmentTotals = calculateMultiCurrencyTotal(
+    treatmentsArray.map((t: any) => ({ amount: t.cost, currency: t.currency || 'EUR' }))
+  );
+  const paymentTotals = calculateMultiCurrencyTotal(
+    actualPayments.map((p: any) => ({ amount: p.amount, currency: p.currency || 'EUR' }))
+  );
+  const outstandingTotals = calculateMultiCurrencyTotal(
+    outstandingBalances.map((p: any) => ({ amount: p.amount, currency: p.currency || 'EUR' }))
+  );
+  
+  // Calculate actual outstanding balance by currency
+  const balanceTotals: Record<Currency, number> = {} as Record<Currency, number>;
+  
+  // Start with treatment costs
+  Object.entries(treatmentTotals).forEach(([currency, amount]) => {
+    balanceTotals[currency as Currency] = amount;
+  });
+  
+  // Subtract payments
+  Object.entries(paymentTotals).forEach(([currency, amount]) => {
+    if (!balanceTotals[currency as Currency]) balanceTotals[currency as Currency] = 0;
+    balanceTotals[currency as Currency] -= amount;
+  });
+  
+  // Add explicitly recorded outstanding balances
+  Object.entries(outstandingTotals).forEach(([currency, amount]) => {
+    if (!balanceTotals[currency as Currency]) balanceTotals[currency as Currency] = 0;
+    balanceTotals[currency as Currency] += amount;
+  });
+  
+  // Remove zero balances for cleaner display
+  Object.keys(balanceTotals).forEach(currency => {
+    if (balanceTotals[currency as Currency] === 0) {
+      delete balanceTotals[currency as Currency];
+    }
+  });
+  
+  // Legacy single-currency calculation for backward compatibility
+  const totalTreatmentCost = Object.values(treatmentTotals).reduce((sum, amount) => sum + amount, 0);
+  const totalPaid = Object.values(paymentTotals).reduce((sum, amount) => sum + amount, 0);
+  const totalOutstandingBalance = Object.values(outstandingTotals).reduce((sum, amount) => sum + amount, 0);
   const outstanding = totalTreatmentCost - totalPaid + totalOutstandingBalance;
 
   // Calculate patient age for odontogram
@@ -247,7 +288,10 @@ export default function PatientDetailsPage() {
                           </div>
                           <div className="text-right">
                             <p className="text-sm font-medium text-green-600">
-                              €{(treatmentsArray.find((t: any) => t.appointmentId === appointment.id)?.cost || 0) / 100}
+                              {(() => {
+                                const treatment = treatmentsArray.find((t: any) => t.appointmentId === appointment.id);
+                                return treatment ? formatCurrency(treatment.cost || 0, treatment.currency || 'EUR') : formatCurrency(0, 'EUR');
+                              })()}
                             </p>
                             <p className="text-xs text-muted-foreground">{t.fee}</p>
                           </div>
@@ -265,80 +309,9 @@ export default function PatientDetailsPage() {
               </CardContent>
             </Card>
 
-            {/* Financial Overview */}
-            <Card>
-              <CardHeader>
-                <CardTitle>{t.financialOverview}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {/* Payment Summary Cards */}
-                  <div className="grid grid-cols-3 gap-3">
-                    <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
-                      <p className="text-xs text-green-600 font-medium">{t.totalPaid}</p>
-                      <p className="text-lg font-semibold text-green-700">
-                        €{(totalPaid / 100).toFixed(2)}
-                      </p>
-                    </div>
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-center">
-                      <p className="text-xs text-red-600 font-medium">{t.outstanding}</p>
-                      <p className="text-lg font-semibold text-red-700">€{(outstanding / 100).toFixed(2)}</p>
-                    </div>
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
-                      <p className="text-xs text-blue-600 font-medium">{t.totalTreatments}</p>
-                      <p className="text-lg font-semibold text-blue-700">
-                        €{(totalTreatmentCost / 100).toFixed(2)}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Outstanding Treatments */}
-                  {outstanding > 0 && (
-                    <div className="border-t pt-4">
-                      <h4 className="text-sm font-medium text-foreground mb-3">{t.unpaidTreatments}</h4>
-                      <div className="space-y-2">
-                        {treatmentsArray
-                          .filter((treatment: any) => {
-                            const treatmentPayments = paymentsArray
-                              .filter((p: any) => p.treatmentId === treatment.id)
-                              .reduce((sum: number, p: any) => sum + p.amount, 0);
-                            return treatment.cost > treatmentPayments;
-                          })
-                          .map((treatment: any) => {
-                            const treatmentPayments = paymentsArray
-                              .filter((p: any) => p.treatmentId === treatment.id)
-                              .reduce((sum: number, p: any) => sum + p.amount, 0);
-                            const remainingCost = treatment.cost - treatmentPayments;
-                            
-                            return (
-                              <div key={treatment.id} className="flex items-center justify-between p-2 bg-red-50 border border-red-100 rounded-lg">
-                                <div>
-                                  <p className="text-xs font-medium text-red-900">{treatment.treatmentType}</p>
-                                  <p className="text-xs text-red-600">
-                                    {format(new Date(treatment.performedAt), 'MMM dd, yyyy')}
-                                  </p>
-                                </div>
-                                <p className="text-sm font-semibold text-red-700">€{(remainingCost / 100).toFixed(2)}</p>
-                              </div>
-                            );
-                          })}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Payment Action */}
-                  <div className="pt-2">
-                    <Button 
-                      className="w-full bg-green-600 hover:bg-green-700" 
-                      size="sm"
-                      onClick={() => setFinancialModalOpen(true)}
-                    >
-                      {t.recordPayment}
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            {/* New Financial System */}
+            <FinancialOverview patientId={patientId} />
+            <TransactionHistory patientId={patientId} />
           </div>
 
           {/* Sidebar */}
@@ -423,7 +396,7 @@ export default function PatientDetailsPage() {
                             )}
                           </div>
                           <p className="text-sm font-semibold text-green-700">
-                            {payment.currency === 'EUR' ? '€' : payment.currency === 'RSD' ? 'дин' : 'Fr'}{(payment.amount / 100).toFixed(2)}
+                            {formatCurrency(payment.amount, payment.currency || 'EUR')}
                           </p>
                         </div>
                       ))}
@@ -450,7 +423,7 @@ export default function PatientDetailsPage() {
                               )}
                             </div>
                             <p className="text-sm font-semibold text-red-700">
-                              {payment.currency === 'EUR' ? '€' : payment.currency === 'RSD' ? 'дин' : 'Fr'}{(payment.amount / 100).toFixed(2)}
+                              {formatCurrency(payment.amount, payment.currency || 'EUR')}
                             </p>
                           </div>
                         ))}
@@ -461,24 +434,18 @@ export default function PatientDetailsPage() {
                   <div className="pt-2 border-t">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium text-foreground">{t.totalPaid}</span>
-                      <span className="text-lg font-bold text-green-600">€{(totalPaid / 100).toFixed(2)}</span>
+                      <span className="text-lg font-bold text-green-600">{formatMultiCurrencyTotal(paymentTotals)}</span>
                     </div>
-                    {outstanding > 0 && (
+                    {Object.keys(outstandingTotals).length > 0 && (
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-medium text-foreground">{t.balanceDue}</span>
-                        <span className="text-lg font-bold text-red-600">€{(outstanding / 100).toFixed(2)}</span>
+                        <span className="text-lg font-bold text-red-600">{formatMultiCurrencyTotal(outstandingTotals)}</span>
                       </div>
                     )}
                   </div>
                 </div>
                 <div className="pt-3">
-                  <Button 
-                    size="sm" 
-                    className="w-full bg-blue-600 hover:bg-blue-700"
-                    onClick={() => setFinancialModalOpen(true)}
-                  >
-                    Financial Record
-                  </Button>
+
                 </div>
               </CardContent>
             </Card>
@@ -548,12 +515,7 @@ export default function PatientDetailsPage() {
         </div>
       </div>
 
-      {/* Financial Record Modal */}
-      <FinancialRecordModal 
-        isOpen={financialModalOpen}
-        onClose={() => setFinancialModalOpen(false)}
-        patientId={patientId}
-      />
+
 
       {/* Appointment Booking Modal */}
       <AppointmentBookingModal

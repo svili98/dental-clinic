@@ -85,6 +85,39 @@ export interface IStorage {
     doctorName?: string;
     notes?: string;
   }): Promise<PaymentRecord>;
+
+  // Financial Transactions (New System)
+  createFinancialTransaction(transaction: {
+    patientId: number;
+    type: 'payment' | 'charge' | 'refund' | 'adjustment';
+    amount: number;
+    currency: string;
+    description: string;
+    category?: string;
+    paymentMethod?: string;
+    transactionReference?: string;
+    appointmentId?: number;
+    treatmentId?: number;
+    recordedBy: number;
+    authorizedBy?: number;
+    status?: string;
+    notes?: string;
+  }): Promise<any>;
+  getPatientFinancialTransactions(patientId: number): Promise<any[]>;
+  getPatientFinancialSummary(patientId: number): Promise<{
+    patientId: number;
+    totalCharges: Record<string, number>;
+    totalPayments: Record<string, number>;
+    totalRefunds: Record<string, number>;
+    balance: Record<string, number>;
+    lastTransactionDate?: string;
+    transactionCount: number;
+  }>;
+  updateFinancialTransaction(id: number, updates: {
+    status?: string;
+    notes?: string;
+    authorizedBy?: number;
+  }): Promise<any | undefined>;
   
   // Dashboard
   getDashboardStats(): Promise<DashboardStats>;
@@ -121,6 +154,7 @@ export class MemStorage implements IStorage {
   private medicalNotes: Map<number, MedicalNote>;
   private treatmentHistory: Map<number, TreatmentHistory>;
   private paymentRecords: Map<number, PaymentRecord>;
+  private financialTransactions: Map<number, any>;
   private roles: Map<number, Role>;
   private employees: Map<number, Employee>;
   private settings: Map<number, Settings>;
@@ -133,6 +167,7 @@ export class MemStorage implements IStorage {
     notes: number; 
     treatments: number; 
     payments: number; 
+    transactions: number;
     roles: number;
     employees: number;
     settings: number;
@@ -147,6 +182,7 @@ export class MemStorage implements IStorage {
     this.medicalNotes = new Map();
     this.treatmentHistory = new Map();
     this.paymentRecords = new Map();
+    this.financialTransactions = new Map();
     this.roles = new Map();
     this.employees = new Map();
     this.settings = new Map();
@@ -159,6 +195,7 @@ export class MemStorage implements IStorage {
       notes: 1, 
       treatments: 1, 
       payments: 1,
+      transactions: 1,
       roles: 1,
       employees: 1,
       settings: 1
@@ -840,6 +877,125 @@ export class MemStorage implements IStorage {
     };
     this.paymentRecords.set(payment.id, payment);
     return payment;
+  }
+
+  // Financial Transactions Methods (New System)
+  async createFinancialTransaction(transactionData: {
+    patientId: number;
+    type: 'payment' | 'charge' | 'refund' | 'adjustment';
+    amount: number;
+    currency: string;
+    description: string;
+    category?: string;
+    paymentMethod?: string;
+    transactionReference?: string;
+    appointmentId?: number;
+    treatmentId?: number;
+    recordedBy: number;
+    authorizedBy?: number;
+    status?: string;
+    notes?: string;
+  }): Promise<any> {
+    const employee = this.employees.get(transactionData.recordedBy);
+    const transaction = {
+      id: this.idCounters.transactions++,
+      ...transactionData,
+      status: transactionData.status || 'completed',
+      category: transactionData.category || null,
+      paymentMethod: transactionData.paymentMethod || null,
+      transactionReference: transactionData.transactionReference || null,
+      appointmentId: transactionData.appointmentId || null,
+      treatmentId: transactionData.treatmentId || null,
+      authorizedBy: transactionData.authorizedBy || null,
+      notes: transactionData.notes || null,
+      recordedByName: employee ? `${employee.firstName} ${employee.lastName}` : 'Unknown',
+      processedAt: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+    };
+    this.financialTransactions.set(transaction.id, transaction);
+    return transaction;
+  }
+
+  async getPatientFinancialTransactions(patientId: number): Promise<any[]> {
+    return Array.from(this.financialTransactions.values())
+      .filter(transaction => transaction.patientId === patientId)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
+  async getPatientFinancialSummary(patientId: number): Promise<{
+    patientId: number;
+    totalCharges: Record<string, number>;
+    totalPayments: Record<string, number>;
+    totalRefunds: Record<string, number>;
+    balance: Record<string, number>;
+    lastTransactionDate?: string;
+    transactionCount: number;
+  }> {
+    const transactions = await this.getPatientFinancialTransactions(patientId);
+    
+    const summary = {
+      patientId,
+      totalCharges: {} as Record<string, number>,
+      totalPayments: {} as Record<string, number>,
+      totalRefunds: {} as Record<string, number>,
+      balance: {} as Record<string, number>,
+      lastTransactionDate: undefined as string | undefined,
+      transactionCount: transactions.length,
+    };
+
+    transactions.forEach(transaction => {
+      if (transaction.status !== 'completed') return;
+
+      const currency = transaction.currency;
+      
+      // Initialize currency totals if not present
+      if (!summary.totalCharges[currency]) summary.totalCharges[currency] = 0;
+      if (!summary.totalPayments[currency]) summary.totalPayments[currency] = 0;
+      if (!summary.totalRefunds[currency]) summary.totalRefunds[currency] = 0;
+      if (!summary.balance[currency]) summary.balance[currency] = 0;
+
+      switch (transaction.type) {
+        case 'charge':
+          summary.totalCharges[currency] += transaction.amount;
+          summary.balance[currency] += transaction.amount;
+          break;
+        case 'payment':
+          summary.totalPayments[currency] += Math.abs(transaction.amount);
+          summary.balance[currency] += transaction.amount; // Payments are negative
+          break;
+        case 'refund':
+          summary.totalRefunds[currency] += transaction.amount;
+          summary.balance[currency] += transaction.amount;
+          break;
+        case 'adjustment':
+          summary.balance[currency] += transaction.amount;
+          break;
+      }
+    });
+
+    if (transactions.length > 0) {
+      summary.lastTransactionDate = transactions[0].createdAt;
+    }
+
+    return summary;
+  }
+
+  async updateFinancialTransaction(id: number, updates: {
+    status?: string;
+    notes?: string;
+    authorizedBy?: number;
+  }): Promise<any | undefined> {
+    const transaction = this.financialTransactions.get(id);
+    if (!transaction) return undefined;
+
+    const updatedTransaction = {
+      ...transaction,
+      ...updates,
+      updatedAt: new Date().toISOString(),
+    };
+
+    this.financialTransactions.set(id, updatedTransaction);
+    return updatedTransaction;
   }
 
   async getDashboardStats(): Promise<DashboardStats> {

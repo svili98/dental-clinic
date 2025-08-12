@@ -123,6 +123,39 @@ export const treatmentHistory = pgTable("treatment_history", {
 });
 
 // Payment records
+// Financial transactions table - unified approach for all money movements
+export const financialTransactions = pgTable("financial_transactions", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  patientId: integer("patient_id").notNull().references(() => patients.id),
+  type: varchar("type", { length: 20 }).notNull(), // 'payment', 'charge', 'refund', 'adjustment'
+  amount: integer("amount").notNull(), // in smallest currency unit (positive for charges, negative for payments/refunds)
+  currency: varchar("currency", { length: 3 }).notNull().default("EUR"), // EUR, RSD, CHF
+  
+  // Reference fields
+  appointmentId: integer("appointment_id").references(() => appointments.id),
+  treatmentId: integer("treatment_id").references(() => treatmentHistory.id),
+  
+  // Payment specific fields
+  paymentMethod: varchar("payment_method", { length: 50 }), // cash, card, bank_transfer, insurance
+  transactionReference: varchar("transaction_reference", { length: 100 }), // external reference number
+  
+  // Employee tracking
+  recordedBy: integer("recorded_by").notNull().references(() => employees.id),
+  authorizedBy: integer("authorized_by").references(() => employees.id), // for large amounts or adjustments
+  
+  // Context and metadata
+  description: text("description").notNull(),
+  category: varchar("category", { length: 50 }), // 'treatment', 'consultation', 'emergency', 'equipment'
+  notes: text("notes"),
+  
+  // Status and timestamps
+  status: varchar("status", { length: 20 }).notNull().default("completed"), // completed, pending, cancelled, refunded
+  processedAt: timestamp("processed_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
+// Legacy payment records table (kept for migration compatibility)
 export const paymentRecords = pgTable("payment_records", {
   id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
   patientId: integer("patient_id").notNull().references(() => patients.id),
@@ -169,6 +202,22 @@ export const insertAppointmentSchema = createInsertSchema(appointments).omit({
 export const insertPatientFileSchema = createInsertSchema(patientFiles).omit({
   id: true,
   uploadedAt: true,
+});
+
+// Financial transaction schemas
+export const insertFinancialTransactionSchema = createInsertSchema(financialTransactions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  processedAt: true,
+}).extend({
+  type: z.enum(["payment", "charge", "refund", "adjustment"]),
+  amount: z.number().min(1, "Amount must be greater than 0"),
+  currency: z.enum(["EUR", "RSD", "CHF"]).default("EUR"),
+  paymentMethod: z.string().optional(),
+  description: z.string().min(1, "Description is required"),
+  category: z.string().optional(),
+  status: z.enum(["completed", "pending", "cancelled", "refunded"]).default("completed"),
 });
 
 export const insertPaymentRecordSchema = createInsertSchema(paymentRecords).omit({

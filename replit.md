@@ -41,7 +41,7 @@ The system includes session-based authentication infrastructure, prepared for fu
 - **Odontogram**: Complete dental chart functionality with Universal Numbering System, interactive tooth selection, condition tracking, surface notation, and treatment history for each tooth.
 - **File Management**: Comprehensive system for X-rays, clinical photos, 3D models, and documents, with category selection, metadata, tag management, image cropping, and clinical photo timeline view.
 - **Medical Records**: Centralized medical records page with tabbed interface (Overview, Medical Notes, Odontogram, Treatments, Files, Clinical Photos) and cross-navigation from patient details. "Add Record" button functionality working correctly.
-- **Payment System**: Fixed payment recording functionality with proper validation for both regular payments and outstanding balances.
+- **Payment System**: Comprehensive multi-currency payment system supporting EUR, RSD, and CHF with proper validation for both regular payments and outstanding balances. Features centralized currency formatting and multi-currency financial totals.
 - **Employee Management**: System with roles, search, filtering, status management, and role-based access control.
 - **Settings Page**: Comprehensive administrative controls for general settings, employee management, and permissions.
 - **Dashboard**: Key metrics display (Total Patients, Today's Appointments, Monthly Revenue).
@@ -82,3 +82,8 @@ The system includes session-based authentication infrastructure, prepared for fu
 
 ## Session Management
 - **connect-pg-simple**: PostgreSQL session store for Express sessions
+
+## Currency Support
+- **Multi-Currency System**: Supports EUR (€), RSD (дин), and CHF (Fr) currencies throughout the application
+- **Centralized Currency Utilities**: `@/lib/currency.ts` provides consistent formatting and calculation functions
+- **Multi-Currency Totals**: Financial overview displays separate totals for each currency used
