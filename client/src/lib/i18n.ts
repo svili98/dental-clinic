@@ -62,8 +62,6 @@ export interface Translations {
   
   // Odontogram
   odontogram: string;
-  adultTeeth: string;
-  primaryTeeth: string;
   maxilla: string;
   mandible: string;
   right: string;
@@ -87,7 +85,6 @@ export interface Translations {
   
   // Medical
   medicalNotes: string;
-  addMedicalNote: string;
   title: string;
   content: string;
   noteType: string;
@@ -121,10 +118,6 @@ export interface Translations {
   teethWhitening: string;
   periodontalTreatment: string;
   emergencyTreatment: string;
-  
-  // Page Titles
-  patientManagement: string;
-  patientManagementDesc: string;
   
   // Financial specific translations
   transactionHistory: string;
@@ -183,8 +176,19 @@ export interface Translations {
   name: string;
   age: string;
   contact: string;
-  status: string;
+  patientStatus: string;
   actions: string;
+  
+  // Additional odontogram terms
+  legend: string;
+  upperJaw: string;
+  lowerJaw: string;
+  adultTeeth: string;
+  primaryTeeth: string;
+  
+  // Medical record buttons
+  addMedicalNote: string;
+  addTreatment: string;
 }
 
 const englishTranslations: Translations = {
@@ -250,15 +254,15 @@ const englishTranslations: Translations = {
   
   // Odontogram
   odontogram: "Odontogram",
-  adultTeeth: "Adult Teeth",
-  primaryTeeth: "Primary Teeth",
   upperJaw: "Upper Jaw",
-  lowerJaw: "Lower Jaw",
+  lowerJaw: "Lower Jaw", 
   maxilla: "Maxilla",
   mandible: "Mandible",
   right: "Right",
   left: "Left",
   legend: "Legend",
+  adultTeeth: "Adult Teeth",
+  primaryTeeth: "Primary Teeth",
   
   // Tooth Conditions
   healthy: "Healthy",
@@ -374,8 +378,10 @@ const englishTranslations: Translations = {
   name: "Name",
   age: "Age",
   contact: "Contact",
-  status: "Status",
+  patientStatus: "Status",
   actions: "Actions",
+  
+
 };
 
 const serbianTranslations: Translations = {
@@ -565,8 +571,10 @@ const serbianTranslations: Translations = {
   name: "Ime",
   age: "Godine",
   contact: "Kontakt",
-  status: "Status",
+  patientStatus: "Status",
   actions: "Akcije",
+  
+
 };
 
 export const translations = {

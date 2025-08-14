@@ -23,6 +23,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { usePatientToothRecords, useCreateToothRecord, useUpdateToothRecord } from "@/hooks/use-tooth-records";
 import { useCreateTreatmentHistory } from "@/hooks/use-treatment-history";
+import { useTranslation } from "@/lib/i18n";
 import { useToast } from "@/hooks/use-toast";
 import type { ToothRecord, InsertToothRecord } from "@shared/schema";
 import { Loader2, Plus } from "lucide-react";
@@ -529,6 +530,7 @@ function ToothDialog({ toothNumber, record, patientId, isOpen, onClose }: ToothD
 }
 
 export function OdontogramISO({ patientId, patientAge }: OdontogramISOProps) {
+  const { t } = useTranslation();
   const [selectedTooth, setSelectedTooth] = useState<{ number: number; record?: ToothRecord } | null>(null);
   const [activeTab, setActiveTab] = useState("adult");
   
@@ -680,7 +682,7 @@ export function OdontogramISO({ patientId, patientAge }: OdontogramISOProps) {
           
           {/* Legend */}
           <div className="mt-6 pt-4 border-t">
-            <h4 className="text-sm font-medium text-gray-600 mb-2">Legend</h4>
+            <h4 className="text-sm font-medium text-gray-600 mb-2">{t.legend}</h4>
             <div className="grid grid-cols-3 gap-2 text-xs">
               {Object.entries(CONDITION_NAMES).map(([key, name]) => (
                 <div key={key} className="flex items-center gap-2">
