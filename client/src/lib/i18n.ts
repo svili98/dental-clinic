@@ -234,13 +234,15 @@ const englishTranslations: Translations = {
   
   // Treatment
   treatmentHistory: "Treatment History",
-  addTreatment: "Add Treatment",
+  addTreatment: "Add Treatment", 
   treatmentType: "Treatment Type",
   description: "Description",
   toothNumbers: "Tooth Numbers",
   cost: "Cost",
   notes: "Notes",
   treatmentNotes: "Treatment Notes",
+  noTreatmentHistoryYet: "No treatment history yet",
+  clickAddTreatmentToRecord: "Click \"Add Treatment\" to record the first treatment",
   
   // Financial
   financialOverview: "Financial Overview",
@@ -286,12 +288,32 @@ const englishTranslations: Translations = {
   title: "Title",
   content: "Content",
   noteType: "Note Type",
+  noMedicalNotesYet: "No medical notes yet",
+  clickAddNoteToCreateFirst: "Click \"Add Note\" to create the first medical note",
   
   // Files
   files: "Files",
   uploadFiles: "Upload Files",
   chooseFiles: "Choose Files",
   dragAndDrop: "Drag and drop files here, or click to browse",
+  patientFiles: "Patient Files",
+  clinicalPhotos: "Clinical Photos",
+  uploadPatientFiles: "Upload Patient Files",
+  fileType: "File Type",
+  xrayImages: "X-Ray Images",
+  threeDModels: "3D Models & Scans",
+  documentsReports: "Documents & Reports",
+  noFileChosen: "No file chosen",
+  dropClinicalPhotosHere: "Drop Clinical Photos here",
+  searchFiles: "Search files, descriptions, or tags...",
+  noFilesFound: "No files found",
+  uploadFilesToGetStarted: "Upload files to get started",
+  date: "Date",
+  all: "All",
+  xray: "X-Ray",
+  clinical: "Clinical",
+  threeD: "3D",
+  documents: "Documents",
   
   // Quick Actions
   quickActions: "Quick Actions",
@@ -428,12 +450,14 @@ const serbianTranslations: Translations = {
   // Treatment
   treatmentHistory: "Istorija lečenja",
   addTreatment: "Dodaj tretman",
-  treatmentType: "Tip tretmana",
+  treatmentType: "Tip tretmana", 
   description: "Opis",
   toothNumbers: "Brojevi zuba",
   cost: "Cena",
   notes: "Napomene",
   treatmentNotes: "Napomene o tretmanu",
+  noTreatmentHistoryYet: "Još nema istorije lečenja",
+  clickAddTreatmentToRecord: "Kliknite \"Dodaj tretman\" da evidentirate prvi tretman",
   
   // Financial
   financialOverview: "Finansijski pregled",
@@ -479,12 +503,32 @@ const serbianTranslations: Translations = {
   title: "Naslov",
   content: "Sadržaj",
   noteType: "Tip napomene",
+  noMedicalNotesYet: "Još nema medicinskih napomena",
+  clickAddNoteToCreateFirst: "Kliknite \"Dodaj napomenu\" da kreirate prvu medicinsku napomenu",
   
   // Files
   files: "Fajlovi",
   uploadFiles: "Otpremi fajlove",
   chooseFiles: "Izaberi fajlove",
   dragAndDrop: "Prevuci i spusti fajlove ovde, ili klikni za pretraživanje",
+  patientFiles: "Fajlovi pacijenta",
+  clinicalPhotos: "Klinički snimci",
+  uploadPatientFiles: "Otpremi fajlove pacijenta",
+  fileType: "Tip fajla",
+  xrayImages: "Rentgenski snimci",
+  threeDModels: "3D modeli i skenovi",
+  documentsReports: "Dokumenti i izveštaji",
+  noFileChosen: "Nije izabran fajl",
+  dropClinicalPhotosHere: "Spusti kliničke snimke ovde",
+  searchFiles: "Pretraži fajlove, opise ili tagove...",
+  noFilesFound: "Nije pronađen nijedan fajl",
+  uploadFilesToGetStarted: "Otpremi fajlove da počneš",
+  date: "Datum",
+  all: "Svi",
+  xray: "Rentgen",
+  clinical: "Klinički",
+  threeD: "3D",
+  documents: "Dokumenti",
   
   // Quick Actions
   quickActions: "Brze akcije",

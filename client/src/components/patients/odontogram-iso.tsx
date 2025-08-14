@@ -57,7 +57,7 @@ const CHILDREN_TEETH_ISO = {
 };
 
 const CONDITION_COLORS = {
-  healthy: "#ffffff",
+  healthy: "#f8f9fa",
   caries: "#ff4444",
   filled: "#4444ff", 
   crown: "#ffaa00",
@@ -127,15 +127,18 @@ function Tooth({ toothNumber, record, onUpdate, isChild = false }: ToothProps) {
   return (
     <button
       onClick={() => onUpdate(toothNumber, record)}
-      className={`relative border border-gray-300 rounded-t-lg hover:ring-2 hover:ring-blue-500 transition-all ${
+      className={`relative border-2 border-gray-400 dark:border-gray-600 rounded-t-lg hover:ring-2 hover:ring-blue-500 transition-all shadow-sm ${
         isChild ? 'w-6 h-8' : 'w-8 h-10'
       }`}
-      style={{ backgroundColor: color }}
+      style={{ 
+        backgroundColor: color,
+        boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.1)'
+      }}
       title={`Tooth ${toothNumber}${record ? ` - ${CONDITION_NAMES[condition as keyof typeof CONDITION_NAMES]}` : ""}${surfaces.length > 0 ? ` (${surfaces.join(', ')})` : ""}`}
     >
-      <span className={`absolute inset-0 flex items-center justify-center font-medium text-gray-800 ${
+      <span className={`absolute inset-0 flex items-center justify-center font-bold text-gray-900 ${
         isChild ? 'text-xs' : 'text-xs'
-      }`}>
+      }`} style={{ textShadow: '0 1px 1px rgba(255,255,255,0.8)' }}>
         {toothNumber}
       </span>
       
@@ -161,7 +164,7 @@ function Tooth({ toothNumber, record, onUpdate, isChild = false }: ToothProps) {
       )}
       
       {record && (
-        <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-600 rounded-full"></div>
+        <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-600 rounded-full border border-white shadow-sm"></div>
       )}
     </button>
   );
@@ -607,14 +610,14 @@ export function OdontogramISO({ patientId, patientAge }: OdontogramISOProps) {
         <CardContent>
           <Tabs value={activeTab} onValueChange={setActiveTab} defaultValue={defaultTab}>
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="adult">Adult Teeth</TabsTrigger>
-              <TabsTrigger value="child">Primary Teeth</TabsTrigger>
+              <TabsTrigger value="adult">{t.adultTeeth}</TabsTrigger>
+              <TabsTrigger value="child">{t.primaryTeeth}</TabsTrigger>
             </TabsList>
             
             <TabsContent value="adult" className="space-y-6 mt-6">
               {/* Adult Upper Jaw - FDI Layout */}
               <div>
-                <h3 className="text-sm font-medium text-gray-600 mb-4">Upper Jaw (Maxilla)</h3>
+                <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-4">{t.upperJaw} ({t.maxilla})</h3>
                 <div className="flex justify-center items-center gap-2">
                   <div className="text-right">
                     <p className="text-xs text-gray-400 mb-1">Right Upper</p>
@@ -630,7 +633,7 @@ export function OdontogramISO({ patientId, patientAge }: OdontogramISOProps) {
               
               {/* Adult Lower Jaw - FDI Layout */}
               <div>
-                <h3 className="text-sm font-medium text-gray-600 mb-4">Lower Jaw (Mandible)</h3>
+                <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-4">{t.lowerJaw} ({t.mandible})</h3>
                 <div className="flex justify-center items-center gap-2">
                   <div className="text-right">
                     <p className="text-xs text-gray-400 mb-1">Right Lower</p>
@@ -648,7 +651,7 @@ export function OdontogramISO({ patientId, patientAge }: OdontogramISOProps) {
             <TabsContent value="child" className="space-y-6 mt-6">
               {/* Child Upper Jaw - FDI Layout */}
               <div>
-                <h3 className="text-sm font-medium text-gray-600 mb-4">Upper Jaw (Maxilla)</h3>
+                <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-4">{t.upperJaw} ({t.maxilla})</h3>
                 <div className="flex justify-center items-center gap-2">
                   <div className="text-right">
                     <p className="text-xs text-gray-400 mb-1">Right Upper</p>
@@ -664,7 +667,7 @@ export function OdontogramISO({ patientId, patientAge }: OdontogramISOProps) {
               
               {/* Child Lower Jaw - FDI Layout */}
               <div>
-                <h3 className="text-sm font-medium text-gray-600 mb-4">Lower Jaw (Mandible)</h3>
+                <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-4">{t.lowerJaw} ({t.mandible})</h3>
                 <div className="flex justify-center items-center gap-2">
                   <div className="text-right">
                     <p className="text-xs text-gray-400 mb-1">Right Lower</p>
@@ -687,10 +690,10 @@ export function OdontogramISO({ patientId, patientAge }: OdontogramISOProps) {
               {Object.entries(CONDITION_NAMES).map(([key, name]) => (
                 <div key={key} className="flex items-center gap-2">
                   <div 
-                    className="w-3 h-3 rounded border border-gray-300"
+                    className="w-3 h-3 rounded border border-gray-300 dark:border-gray-600"
                     style={{ backgroundColor: CONDITION_COLORS[key as keyof typeof CONDITION_COLORS] }}
                   />
-                  <span>{name}</span>
+                  <span className="text-gray-700 dark:text-gray-300">{t[key as keyof typeof t] || name}</span>
                 </div>
               ))}
             </div>
