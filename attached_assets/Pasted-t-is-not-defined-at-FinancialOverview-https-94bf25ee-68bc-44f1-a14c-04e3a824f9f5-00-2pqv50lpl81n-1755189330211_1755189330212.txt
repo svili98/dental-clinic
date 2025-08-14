@@ -1,0 +1,36 @@
+t is not defined
+at FinancialOverview (https://94bf25ee-68bc-44f1-a14c-04e3a824f9f5-00-2pqv50lpl81nh.janeway.replit.dev/src/components/patients/financial-overview.tsx:151:17)
+at renderWithHooks (https://94bf25ee-68bc-44f1-a14c-04e3a824f9f5-00-2pqv50lpl81nh.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=fc857c9b:11548:26)
+at updateFunctionComponent (https://94bf25ee-68bc-44f1-a14c-04e3a824f9f5-00-2pqv50lpl81nh.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=fc857c9b:14582:28)
+at beginWork (https://94bf25ee-68bc-44f1-a14c-04e3a824f9f5-00-2pqv50lpl81nh.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=fc857c9b:15924:22)
+at HTMLUnknownElement.callCallback2 (https://94bf25ee-68bc-44f1-a14c-04e3a824f9f5-00-2pqv50lpl81nh.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=fc857c9b:3674:22)
+at Object.invokeGuardedCallbackDev (https://94bf25ee-68bc-44f1-a14c-04e3a824f9f5-00-2pqv50lpl81nh.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=fc857c9b:3699:24)
+at invokeGuardedCallback (https://94bf25ee-68bc-44f1-a14c-04e3a824f9f5-00-2pqv50lpl81nh.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=fc857c9b:3733:39)
+at beginWork$1 (https://94bf25ee-68bc-44f1-a14c-04e3a824f9f5-00-2pqv50lpl81nh.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=fc857c9b:19765:15)
+at performUnitOfWork (https://94bf25ee-68bc-44f1-a14c-04e3a824f9f5-00-2pqv50lpl81nh.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=fc857c9b:19198:20)
+at workLoopSync (https://94bf25ee-68bc-44f1-a14c-04e3a824f9f5-00-2pqv50lpl81nh.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=fc857c9b:19137:13)
+The above error occurred in the <FinancialOverview> component:
+
+    at FinancialOverview (https://94bf25ee-68bc-44f1-a14c-04e3a824f9f5-00-2pqv50lpl81nh.janeway.replit.dev/src/components/patients/financial-overview.tsx:26:37)
+    at div
+    at div
+    at div
+    at div
+    at main
+    at div
+    at div
+    at Layout (https://94bf25ee-68bc-44f1-a14c-04e3a824f9f5-00-2pqv50lpl81nh.janeway.replit.dev/src/components/layout/layout.tsx:30:26)
+    at PatientDetailsPage (https://94bf25ee-68bc-44f1-a14c-04e3a824f9f5-00-2pqv50lpl81nh.janeway.replit.dev/src/pages/patients/patient-details.tsx:46:18)
+    at Route (https://94bf25ee-68bc-44f1-a14c-04e3a824f9f5-00-2pqv50lpl81nh.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=fc857c9b:323:16)
+    at Switch (https://94bf25ee-68bc-44f1-a14c-04e3a824f9f5-00-2pqv50lpl81nh.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=fc857c9b:379:17)
+    at Router (https://94bf25ee-68bc-44f1-a14c-04e3a824f9f5-00-2pqv50lpl81nh.janeway.replit.dev/src/App.tsx?v=u-ay-dWCsoI3eGI5YtVnN:39:38)
+    at Provider (https://94bf25ee-68bc-44f1-a14c-04e3a824f9f5-00-2pqv50lpl81nh.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=fc857c9b:38:15)
+    at TooltipProvider (https://94bf25ee-68bc-44f1-a14c-04e3a824f9f5-00-2pqv50lpl81nh.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=fc857c9b:64:5)
+    at ThemeProvider (https://94bf25ee-68bc-44f1-a14c-04e3a824f9f5-00-2pqv50lpl81nh.janeway.replit.dev/src/components/theme-provider.tsx:25:3)
+    at LanguageProvider (https://94bf25ee-68bc-44f1-a14c-04e3a824f9f5-00-2pqv50lpl81nh.janeway.replit.dev/src/components/language-provider.tsx:20:36)
+    at QueryClientProvider (https://94bf25ee-68bc-44f1-a14c-04e3a824f9f5-00-2pqv50lpl81nh.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=fc857c9b:2805:3)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+t is not defined
