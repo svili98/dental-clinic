@@ -142,7 +142,7 @@ function Tooth({ toothNumber, record, onUpdate, isChild = false }: ToothProps) {
         {toothNumber}
       </span>
       
-      {/* Surface notation indicators */}
+      {/* Surface notation indicators - made smaller and less intrusive */}
       {surfaces.length > 0 && (
         <div className="absolute inset-0 pointer-events-none">
           {surfaces.map(surface => {
@@ -151,7 +151,7 @@ function Tooth({ toothNumber, record, onUpdate, isChild = false }: ToothProps) {
             return (
               <div
                 key={surface}
-                className="absolute w-1 h-1 bg-red-500 rounded-full"
+                className="absolute w-0.5 h-0.5 bg-red-600 dark:bg-red-400 rounded-full opacity-70"
                 style={{
                   left: pos.x,
                   top: pos.y,
