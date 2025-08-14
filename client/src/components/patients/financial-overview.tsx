@@ -78,7 +78,7 @@ export function FinancialOverview({ patientId }: FinancialOverviewProps) {
                 data-testid="button-add-charge"
               >
                 <Plus className="h-4 w-4 mr-1" />
-                Add Charge
+                {t.addCharge}
               </Button>
               <Button 
                 size="sm"

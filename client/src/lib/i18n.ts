@@ -66,13 +66,10 @@ export interface Translations {
   odontogram: string;
   adultTeeth: string;
   primaryTeeth: string;
-  upperJaw: string;
-  lowerJaw: string;
   maxilla: string;
   mandible: string;
   right: string;
   left: string;
-  legend: string;
   
   // Tooth Conditions
   healthy: string;
@@ -105,7 +102,6 @@ export interface Translations {
   
   // Quick Actions
   quickActions: string;
-  addMedicalNote: string;
   sendMessage: string;
   
   // Stats
@@ -127,6 +123,43 @@ export interface Translations {
   teethWhitening: string;
   periodontalTreatment: string;
   emergencyTreatment: string;
+  
+  // Page Titles
+  patientManagement: string;
+  patientManagementDesc: string;
+  
+  // Financial specific translations
+  transactionHistory: string;
+  noTransactionsRecorded: string;
+  financialTransactionsSummary: string;
+  addCharge: string;
+  currentBalance: string;
+  totalCharges: string;
+  totalPayments: string;
+  totalRefunds: string;
+  lastTransaction: string;
+  
+  // Common UI elements
+  close: string;
+  noResultsFound: string;
+  services: string;
+  dentalCare: string;
+  
+  // Odontogram specific
+  affectedSurfaces: string;
+  condition: string;
+  
+  // Medical Records
+  noMedicalNotesAvailable: string;
+  noAppointmentsAvailable: string;
+  noTreatmentHistoryYet: string;
+  noFilesFound: string;
+  
+  // General status messages
+  noDataAvailable: string;
+  loadMore: string;
+  viewDetails: string;
+  editPatient: string;
 }
 
 const englishTranslations: Translations = {
@@ -258,6 +291,39 @@ const englishTranslations: Translations = {
   // Page Titles
   patientManagement: "Patient Management",
   patientManagementDesc: "Manage patient records, appointments, and medical history",
+  
+  // Financial specific translations
+  transactionHistory: "Transaction History",
+  noTransactionsRecorded: "No transactions recorded",
+  financialTransactionsSummary: "Financial transactions and balance summary",
+  addCharge: "Add Charge",
+  currentBalance: "Current Balance",
+  totalCharges: "Total Charges",
+  totalPayments: "Total Payments",
+  totalRefunds: "Total Refunds",
+  lastTransaction: "Last Transaction",
+  
+  // Common UI elements
+  close: "Close",
+  noResultsFound: "No results found",
+  services: "Services",
+  dentalCare: "DentalCare",
+  
+  // Odontogram specific
+  affectedSurfaces: "Affected Surfaces",
+  condition: "Condition",
+  
+  // Medical Records
+  noMedicalNotesAvailable: "No medical notes available",
+  noAppointmentsAvailable: "No appointments available",
+  noTreatmentHistoryYet: "No treatment history yet",
+  noFilesFound: "No files found",
+  
+  // General status messages
+  noDataAvailable: "No data available",
+  loadMore: "Load More",
+  viewDetails: "View Details",
+  editPatient: "Edit Patient",
 };
 
 const serbianTranslations: Translations = {
@@ -389,6 +455,39 @@ const serbianTranslations: Translations = {
   // Page Titles
   patientManagement: "Upravljanje pacijentima",
   patientManagementDesc: "Upravljajte kartonima pacijenata, terminima i medicinskom istorijom",
+  
+  // Financial specific translations
+  transactionHistory: "Istorija transakcija",
+  noTransactionsRecorded: "Nema evidentirane transakcije",
+  financialTransactionsSummary: "Pregled finansijskih transakcija i balansa",
+  addCharge: "Dodaj naknadu",
+  currentBalance: "Trenutni balans",
+  totalCharges: "Ukupne naknade",
+  totalPayments: "Ukupna plaćanja",
+  totalRefunds: "Ukupni povraćaji",
+  lastTransaction: "Poslednja transakcija",
+  
+  // Common UI elements
+  close: "Zatvori",
+  noResultsFound: "Nema rezultata",
+  services: "Usluge",
+  dentalCare: "DentalCare",
+  
+  // Odontogram specific
+  affectedSurfaces: "Zahvaćene površine",
+  condition: "Stanje",
+  
+  // Medical Records
+  noMedicalNotesAvailable: "Nema dostupnih medicinskih napomena",
+  noAppointmentsAvailable: "Nema dostupnih termina",
+  noTreatmentHistoryYet: "Još nema istorije lečenja",
+  noFilesFound: "Nema pronađenih fajlova",
+  
+  // General status messages
+  noDataAvailable: "Nema dostupnih podataka",
+  loadMore: "Učitaj više",
+  viewDetails: "Prikaži detalje",
+  editPatient: "Uredi pacijenta",
 };
 
 export const translations = {

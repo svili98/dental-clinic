@@ -352,7 +352,7 @@ export default function PatientDetailsPage() {
               <CardContent>
                 <div className="text-center py-4">
                   <p className="text-sm text-gray-500">
-                    Financial transactions and balance summary.
+                    {t.financialTransactionsSummary}
                   </p>
                 </div>
               </CardContent>
