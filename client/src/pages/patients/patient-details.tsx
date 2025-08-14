@@ -352,7 +352,7 @@ export default function PatientDetailsPage() {
               <CardContent>
                 <div className="text-center py-4">
                   <p className="text-sm text-gray-500">
-                    View detailed financial information in the Financial Overview section below.
+                    Financial transactions and balance summary.
                   </p>
                 </div>
               </CardContent>

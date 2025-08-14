@@ -86,12 +86,12 @@ const TOOTH_SURFACES = {
 } as const;
 
 const SURFACE_POSITIONS = {
-  M: { x: "15%", y: "50%" },
-  D: { x: "85%", y: "50%" },
-  O: { x: "50%", y: "30%" },
-  I: { x: "50%", y: "30%" },
-  L: { x: "50%", y: "15%" },
-  B: { x: "50%", y: "85%" },
+  M: { x: 18, y: 40 },
+  D: { x: 102, y: 40 },
+  O: { x: 60, y: 24 },
+  I: { x: 60, y: 24 },
+  L: { x: 60, y: 12 },
+  B: { x: 60, y: 68 },
 } as const;
 
 const CONDITION_NAMES = {
@@ -380,8 +380,8 @@ function ToothDialog({ toothNumber, record, patientId, isOpen, onClose }: ToothD
                     return (
                       <g key={surface}>
                         <circle
-                          cx={parseFloat(pos.x)}
-                          cy={parseFloat(pos.y)}
+                          cx={pos.x}
+                          cy={pos.y}
                           r="8"
                           fill={isSelected ? "#3b82f6" : "#e5e7eb"}
                           stroke={isSelected ? "#1d4ed8" : "#9ca3af"}
@@ -390,8 +390,8 @@ function ToothDialog({ toothNumber, record, patientId, isOpen, onClose }: ToothD
                           onClick={() => toggleSurface(surface)}
                         />
                         <text
-                          x={parseFloat(pos.x)}
-                          y={parseFloat(pos.y) + 2}
+                          x={pos.x}
+                          y={pos.y + 2}
                           textAnchor="middle"
                           fontSize="8"
                           fill={isSelected ? "white" : "#374151"}
