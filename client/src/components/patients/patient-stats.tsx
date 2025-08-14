@@ -3,12 +3,14 @@ import { Badge } from "@/components/ui/badge";
 import { Users, UserCheck, UserX, Calendar, Activity, TrendingUp } from "lucide-react";
 import type { Patient } from "@shared/schema";
 import { differenceInYears, parseISO } from "date-fns";
+import { useTranslation } from "@/lib/i18n";
 
 interface PatientStatsProps {
   patients?: Patient[];
 }
 
 export function PatientStats({ patients }: PatientStatsProps) {
+  const { t } = useTranslation();
   const safePatients = patients || [];
   const totalPatients = safePatients.length;
   
@@ -63,7 +65,7 @@ export function PatientStats({ patients }: PatientStatsProps) {
 
   const stats = [
     {
-      title: "Total Patients",
+      title: t.totalPatients,
       value: totalPatients.toString(),
       description: "All registered patients",
       icon: Users,
@@ -72,7 +74,7 @@ export function PatientStats({ patients }: PatientStatsProps) {
       badge: null,
     },
     {
-      title: "Active Patients",
+      title: t.activePatients,
       value: activePatients.toString(),
       description: "Visited within 6 months",
       icon: UserCheck,
@@ -81,7 +83,7 @@ export function PatientStats({ patients }: PatientStatsProps) {
       badge: totalPatients > 0 ? `${Math.round((activePatients / totalPatients) * 100)}%` : "0%",
     },
     {
-      title: "Inactive Patients",
+      title: t.inactivePatients,
       value: inactivePatients.toString(),
       description: "No recent visits",
       icon: UserX,
@@ -90,7 +92,7 @@ export function PatientStats({ patients }: PatientStatsProps) {
       badge: totalPatients > 0 ? `${Math.round((inactivePatients / totalPatients) * 100)}%` : "0%",
     },
     {
-      title: "New This Month",
+      title: t.newPatientsThisMonth,
       value: newPatientsThisMonth.toString(),
       description: "Recently registered",
       icon: TrendingUp,
@@ -99,7 +101,7 @@ export function PatientStats({ patients }: PatientStatsProps) {
       badge: newPatientsThisMonth > 0 ? "New" : null,
     },
     {
-      title: "Average Age",
+      title: t.averageAge,
       value: `${averageAge} years`,
       description: "Patient demographics",
       icon: Calendar,
@@ -108,9 +110,9 @@ export function PatientStats({ patients }: PatientStatsProps) {
       badge: null,
     },
     {
-      title: "Age Distribution",
+      title: t.ageDistribution,
       value: `${ageDistribution.children}/${ageDistribution.adults}/${ageDistribution.seniors}`,
-      description: "Children/Adults/Seniors",
+      description: `${t.children}/${t.adults}/${t.seniors}`,
       icon: Activity,
       color: "text-cyan-600",
       bgColor: "bg-cyan-50",

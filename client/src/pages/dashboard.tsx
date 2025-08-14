@@ -8,9 +8,11 @@ import { Button } from "@/components/ui/button";
 import { usePatients } from "@/hooks/use-patients";
 import { Link } from "wouter";
 import { Plus, Download } from "lucide-react";
+import { useTranslation } from "@/lib/i18n";
 
 export default function Dashboard() {
   const { data: patientsData, isLoading } = usePatients({ pageSize: 5 });
+  const { t } = useTranslation();
 
   return (
     <Layout>
@@ -25,17 +27,17 @@ export default function Dashboard() {
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle>Recent Patients</CardTitle>
+                  <CardTitle>{t.recentPatients}</CardTitle>
                   <div className="flex space-x-3">
                     <Link href="/patients/create">
                       <Button className="bg-blue-600 hover:bg-blue-700">
                         <Plus className="h-4 w-4 mr-2" />
-                        Add Patient
+                        {t.addPatient}
                       </Button>
                     </Link>
                     <Link href="/patients">
                       <Button variant="outline">
-                        View All
+                        {t.viewAll}
                       </Button>
                     </Link>
                   </div>

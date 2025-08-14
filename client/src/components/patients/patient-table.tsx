@@ -10,6 +10,7 @@ import { Calendar, Phone, Mail, MapPin, Activity } from "lucide-react";
 import { Link } from "wouter";
 import type { Patient } from "@shared/schema";
 import { format, parseISO, differenceInYears } from "date-fns";
+import { useTranslation } from "@/lib/i18n";
 
 interface PatientTableProps {
   patients: Patient[];
@@ -18,6 +19,7 @@ interface PatientTableProps {
 }
 
 export function PatientTable({ patients, loading, compact = false }: PatientTableProps) {
+  const { t } = useTranslation();
   const [selectedPatients, setSelectedPatients] = useState<number[]>([]);
 
   const toggleSelectAll = () => {

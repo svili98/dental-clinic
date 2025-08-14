@@ -31,8 +31,6 @@ export interface Translations {
   phone: string;
   email: string;
   address: string;
-  status: string;
-  active: string;
   
   // Appointments
   appointmentScheduled: string;
@@ -160,6 +158,33 @@ export interface Translations {
   loadMore: string;
   viewDetails: string;
   editPatient: string;
+  
+  // Dashboard specific
+  recentPatients: string;
+  addPatient: string;
+  viewAll: string;
+  todaysAppointments: string;
+  totalPatients: string;
+  activePatients: string;
+  inactivePatients: string;
+  newPatientsThisMonth: string;
+  averageAge: string;
+  ageDistribution: string;
+  children: string;
+  adults: string;
+  seniors: string;
+  
+  // Patient status
+  active: string;
+  inactive: string;
+  atRisk: string;
+  
+  // Table headers
+  name: string;
+  age: string;
+  contact: string;
+  status: string;
+  actions: string;
 }
 
 const englishTranslations: Translations = {
@@ -324,6 +349,33 @@ const englishTranslations: Translations = {
   loadMore: "Load More",
   viewDetails: "View Details",
   editPatient: "Edit Patient",
+  
+  // Dashboard specific
+  recentPatients: "Recent Patients",
+  addPatient: "Add Patient",
+  viewAll: "View All",
+  todaysAppointments: "Today's Appointments",
+  totalPatients: "Total Patients",
+  activePatients: "Active Patients",
+  inactivePatients: "Inactive Patients",
+  newPatientsThisMonth: "New Patients This Month",
+  averageAge: "Average Age",
+  ageDistribution: "Age Distribution",
+  children: "Children",
+  adults: "Adults",
+  seniors: "Seniors",
+  
+  // Patient status
+  active: "Active",
+  inactive: "Inactive",
+  atRisk: "At Risk",
+  
+  // Table headers
+  name: "Name",
+  age: "Age",
+  contact: "Contact",
+  status: "Status",
+  actions: "Actions",
 };
 
 const serbianTranslations: Translations = {
@@ -488,6 +540,33 @@ const serbianTranslations: Translations = {
   loadMore: "Učitaj više",
   viewDetails: "Prikaži detalje",
   editPatient: "Uredi pacijenta",
+  
+  // Dashboard specific
+  recentPatients: "Poslednji pacijenti",
+  addPatient: "Dodaj pacijenta",
+  viewAll: "Prikaži sve",
+  todaysAppointments: "Današnji termini",
+  totalPatients: "Ukupno pacijenata",
+  activePatients: "Aktivni pacijenti",
+  inactivePatients: "Neaktivni pacijenti",
+  newPatientsThisMonth: "Novi pacijenti ovog meseca",
+  averageAge: "Prosečne godine",
+  ageDistribution: "Raspored godina",
+  children: "Deca",
+  adults: "Odrasli",
+  seniors: "Stariji",
+  
+  // Patient status
+  active: "Aktivan",
+  inactive: "Neaktivan",
+  atRisk: "U riziku",
+  
+  // Table headers
+  name: "Ime",
+  age: "Godine",
+  contact: "Kontakt",
+  status: "Status",
+  actions: "Akcije",
 };
 
 export const translations = {

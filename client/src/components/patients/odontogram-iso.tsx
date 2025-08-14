@@ -368,7 +368,7 @@ function ToothDialog({ toothNumber, record, patientId, isOpen, onClose }: ToothD
               <div className="relative mx-auto mb-4" style={{ width: "120px", height: "80px" }}>
                 <svg viewBox="0 0 120 80" className="w-full h-full border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800">
                   {/* Tooth shape */}
-                  <rect x="30" y="20" width="60" height="40" rx="8" fill="#f8f9fa" stroke="#dee2e6" strokeWidth="1" className="dark:fill-gray-700 dark:stroke-gray-500"/>
+                  <rect x="30" y="20" width="60" height="40" rx="8" fill="#f8f9fa" stroke="#dee2e6" strokeWidth="1" className="dark:fill-gray-800 dark:stroke-gray-400"/>
                   
                   {/* Surface markers */}
                   {Object.entries(SURFACE_POSITIONS).map(([surface, pos]) => {
