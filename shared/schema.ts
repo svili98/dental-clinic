@@ -4,6 +4,15 @@ import { createInsertSchema } from "drizzle-zod";
 import { relations } from "drizzle-orm";
 import { z } from "zod";
 
+// Patient status definitions
+export const PATIENT_STATUSES = {
+  1: { id: 1, name: 'Active', color: 'green', description: 'Currently receiving treatment' },
+  2: { id: 2, name: 'Inactive', color: 'gray', description: 'Not currently receiving treatment' },
+  3: { id: 3, name: 'Completed', color: 'blue', description: 'Treatment completed' },
+  4: { id: 4, name: 'Suspended', color: 'orange', description: 'Treatment temporarily suspended' },
+  5: { id: 5, name: 'Transferred', color: 'purple', description: 'Transferred to another clinic' }
+} as const;
+
 export const patients = pgTable("patients", {
   id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
   firstName: varchar("first_name", { length: 100 }).notNull(),
@@ -212,12 +221,18 @@ export const insertFinancialTransactionSchema = createInsertSchema(financialTran
   processedAt: true,
 }).extend({
   type: z.enum(["payment", "charge", "refund", "adjustment"]),
-  amount: z.number().min(1, "Amount must be greater than 0"),
+  amount: z.number(),
   currency: z.enum(["EUR", "RSD", "CHF"]).default("EUR"),
   paymentMethod: z.string().optional(),
   description: z.string().min(1, "Description is required"),
   category: z.string().optional(),
   status: z.enum(["completed", "pending", "cancelled", "refunded"]).default("completed"),
+  recordedBy: z.number().min(1, "Recorded by employee ID is required"),
+  authorizedBy: z.number().optional(),
+  transactionReference: z.string().optional(),
+  appointmentId: z.number().optional(),
+  treatmentId: z.number().optional(),
+  notes: z.string().optional(),
 });
 
 export const insertPaymentRecordSchema = createInsertSchema(paymentRecords).omit({

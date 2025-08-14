@@ -39,12 +39,12 @@ The system includes session-based authentication infrastructure, prepared for fu
 - **Patient Management**: Comprehensive patient details, medical history, financial overview, and detailed treatment history with profile picture support.
 - **Appointment Scheduling**: Integration with a calendar view, service management, and booking modal, supporting mock data for development.
 - **Odontogram**: Complete dental chart functionality with Universal Numbering System, interactive tooth selection, condition tracking, surface notation, and treatment history for each tooth.
-- **File Management**: Comprehensive system for X-rays, clinical photos, 3D models, and documents, with category selection, metadata, tag management, image cropping, and clinical photo timeline view.
+- **File Management**: Streamlined system for X-rays, clinical photos, 3D models, and documents, with unified upload/view interface, category selection, metadata, tag management, image cropping, and clinical photo timeline view.
 - **Medical Records**: Centralized medical records page with tabbed interface (Overview, Medical Notes, Odontogram, Treatments, Files, Clinical Photos) and cross-navigation from patient details. "Add Record" button functionality working correctly.
-- **Payment System**: Comprehensive multi-currency payment system supporting EUR, RSD, and CHF with proper validation for both regular payments and outstanding balances. Features centralized currency formatting and multi-currency financial totals.
+- **Financial System**: Unified multi-currency financial transaction system supporting EUR, RSD, and CHF with proper validation. Features centralized currency formatting, multi-currency financial totals, transaction history, and financial overview. Legacy payment systems removed for clarity.
 - **Employee Management**: System with roles, search, filtering, status management, and role-based access control.
 - **Settings Page**: Comprehensive administrative controls for general settings, employee management, and permissions.
-- **Dashboard**: Key metrics display (Total Patients, Today's Appointments, Monthly Revenue).
+- **Dashboard**: Streamlined dashboard with key metrics display (Total Patients, Today's Appointments, Monthly Revenue) and consolidated patient management.
 - **Patient Avatars**: Professional avatar system with initials fallback for patients without profile pictures.
 
 # External Dependencies
@@ -87,3 +87,13 @@ The system includes session-based authentication infrastructure, prepared for fu
 - **Multi-Currency System**: Supports EUR (€), RSD (дин), and CHF (Fr) currencies throughout the application
 - **Centralized Currency Utilities**: `@/lib/currency.ts` provides consistent formatting and calculation functions
 - **Multi-Currency Totals**: Financial overview displays separate totals for each currency used
+
+## Recent Changes (January 2025)
+
+### Application Simplification and Cleanup
+- **Removed Duplicate Components**: Eliminated redundant payment-record-modal.tsx and use-payments.ts in favor of unified transaction system
+- **Dashboard Streamlined**: Removed duplicate "Patient Management" section that showed same PatientTable as "Recent Patients"
+- **File Management Simplified**: Consolidated duplicate file upload/view tabs into unified interface
+- **Legacy Code Cleanup**: Removed appointments-new.tsx, settings-old.tsx, and other unused redundant files
+- **Financial Interface Redesigned**: Consolidated to single Financial Overview + Transaction History layout in grid format
+- **Navigation Improved**: Removed redundant "Medical Records" button from patient details header since functionality is integrated into the page

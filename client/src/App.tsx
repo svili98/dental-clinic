@@ -11,7 +11,7 @@ import Dashboard from "@/pages/dashboard";
 import PatientsPage from "@/pages/patients/patients";
 import CreatePatientPage from "@/pages/patients/create-patient";
 import PatientDetailsPage from "@/pages/patients/patient-details";
-import AppointmentsPage from "@/pages/appointments/appointments-new";
+import AppointmentsPage from "@/pages/appointments/appointments";
 import FilesPage from "@/pages/files/files";
 import MedicalRecordsPage from "@/pages/medical-records/medical-records";
 import SettingsPage from "@/pages/settings/settings";

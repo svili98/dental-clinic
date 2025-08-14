@@ -75,6 +75,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/patients/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = insertPatientSchema.partial().parse(req.body);
+      const patient = await storage.updatePatient(id, validatedData);
+      if (!patient) {
+        return res.status(404).json({ message: "Patient not found" });
+      }
+      res.json(patient);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Validation error", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update patient" });
+    }
+  });
+
   app.delete("/api/patients/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);

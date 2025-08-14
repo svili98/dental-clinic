@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { insertPatientSchema, type InsertPatient, type Patient } from "@shared/schema";
+import { insertPatientSchema, type InsertPatient, type Patient, PATIENT_STATUSES } from "@shared/schema";
 import { X, Upload, FileText } from "lucide-react";
 import { format } from "date-fns";
 
@@ -41,6 +41,7 @@ export function PatientForm({ initialData, onSubmit, loading, onCancel }: Patien
       address: initialData.address || "",
       gender: initialData.gender as "Male" | "Female",
       jmbg: initialData.jmbg,
+      statusId: initialData.statusId || 1,
       medicalConditions: [],
     } : {
       firstName: "",
@@ -51,6 +52,7 @@ export function PatientForm({ initialData, onSubmit, loading, onCancel }: Patien
       address: "",
       gender: "Male",
       jmbg: "",
+      statusId: 1,
       medicalConditions: [],
     },
   });
@@ -176,6 +178,34 @@ export function PatientForm({ initialData, onSubmit, loading, onCancel }: Patien
                       <SelectContent>
                         <SelectItem value="Male">Male</SelectItem>
                         <SelectItem value="Female">Female</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="statusId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Patient Status *</FormLabel>
+                    <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select patient status" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {Object.values(PATIENT_STATUSES).map(status => (
+                          <SelectItem key={status.id} value={status.id.toString()}>
+                            <div className="flex items-center gap-2">
+                              <div className={`w-2 h-2 rounded-full bg-${status.color}-500`}></div>
+                              <span>{status.name}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />

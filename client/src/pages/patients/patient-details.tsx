@@ -16,13 +16,15 @@ import { usePatient } from "@/hooks/use-patients";
 import { usePatientFiles } from "@/hooks/use-files";
 import { useAppointments } from "@/hooks/use-appointments";
 import { useTreatmentHistory } from "@/hooks/use-treatment-history";
-import { usePaymentRecords } from "@/hooks/use-payments";
+
 import { useTranslation } from "@/lib/i18n";
-import { calculateMultiCurrencyTotal, formatMultiCurrencyTotal, formatCurrency, type Currency } from "@/lib/currency";
+import { formatCurrency } from "@/lib/currency";
+import { PATIENT_STATUSES } from "@shared/schema";
 import { Link, useParams } from "wouter";
 import { useState } from "react";
 import { ArrowLeft, Edit, Calendar, FileText, Phone, Mail, MapPin } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
 import { format } from "date-fns";
 
 export default function PatientDetailsPage() {
@@ -36,59 +38,7 @@ export default function PatientDetailsPage() {
   const { data: files } = usePatientFiles(patientId);
   const { data: appointmentsData } = useAppointments({ patientId });
   const { data: treatments } = useTreatmentHistory(patientId);
-  const { data: payments } = usePaymentRecords(patientId);
-
-  // Calculate financial totals from actual data with multi-currency support
   const treatmentsArray = Array.isArray(treatments) ? treatments : [];
-  const paymentsArray = Array.isArray(payments) ? payments : [];
-  
-  // Separate actual payments from outstanding balances
-  const actualPayments = paymentsArray.filter((payment: any) => payment.paymentMethod !== 'outstanding');
-  const outstandingBalances = paymentsArray.filter((payment: any) => payment.paymentMethod === 'outstanding');
-  
-  // Calculate totals by currency
-  const treatmentTotals = calculateMultiCurrencyTotal(
-    treatmentsArray.map((t: any) => ({ amount: t.cost, currency: t.currency || 'EUR' }))
-  );
-  const paymentTotals = calculateMultiCurrencyTotal(
-    actualPayments.map((p: any) => ({ amount: p.amount, currency: p.currency || 'EUR' }))
-  );
-  const outstandingTotals = calculateMultiCurrencyTotal(
-    outstandingBalances.map((p: any) => ({ amount: p.amount, currency: p.currency || 'EUR' }))
-  );
-  
-  // Calculate actual outstanding balance by currency
-  const balanceTotals: Record<Currency, number> = {} as Record<Currency, number>;
-  
-  // Start with treatment costs
-  Object.entries(treatmentTotals).forEach(([currency, amount]) => {
-    balanceTotals[currency as Currency] = amount;
-  });
-  
-  // Subtract payments
-  Object.entries(paymentTotals).forEach(([currency, amount]) => {
-    if (!balanceTotals[currency as Currency]) balanceTotals[currency as Currency] = 0;
-    balanceTotals[currency as Currency] -= amount;
-  });
-  
-  // Add explicitly recorded outstanding balances
-  Object.entries(outstandingTotals).forEach(([currency, amount]) => {
-    if (!balanceTotals[currency as Currency]) balanceTotals[currency as Currency] = 0;
-    balanceTotals[currency as Currency] += amount;
-  });
-  
-  // Remove zero balances for cleaner display
-  Object.keys(balanceTotals).forEach(currency => {
-    if (balanceTotals[currency as Currency] === 0) {
-      delete balanceTotals[currency as Currency];
-    }
-  });
-  
-  // Legacy single-currency calculation for backward compatibility
-  const totalTreatmentCost = Object.values(treatmentTotals).reduce((sum, amount) => sum + amount, 0);
-  const totalPaid = Object.values(paymentTotals).reduce((sum, amount) => sum + amount, 0);
-  const totalOutstandingBalance = Object.values(outstandingTotals).reduce((sum, amount) => sum + amount, 0);
-  const outstanding = totalTreatmentCost - totalPaid + totalOutstandingBalance;
 
   // Calculate patient age for odontogram
   const patientAge = patient ? new Date().getFullYear() - new Date(patient.dateOfBirth).getFullYear() : 25;
@@ -151,13 +101,10 @@ export default function PatientDetailsPage() {
                 Edit Patient
               </Button>
             </Link>
-            <Link href="/medical-records">
-              <Button variant="outline">
-                <FileText className="h-4 w-4 mr-2" />
-                Medical Records
-              </Button>
-            </Link>
-            <Button className="bg-blue-600 hover:bg-blue-700">
+            <Button 
+              className="bg-blue-600 hover:bg-blue-700"
+              onClick={() => setAppointmentModalOpen(true)}
+            >
               <Calendar className="h-4 w-4 mr-2" />
               Schedule Appointment
             </Button>
@@ -244,8 +191,29 @@ export default function PatientDetailsPage() {
                     </div>
                     <div>
                       <label className="text-sm font-medium text-muted-foreground">{t.status}</label>
-                      <div className="mt-1">
-                        <Badge className="status-badge status-active">Active</Badge>
+                      <div className="mt-1 flex items-center gap-2">
+                        <Switch
+                          checked={patient.statusId === 1}
+                          onCheckedChange={async (checked) => {
+                            try {
+                              const response = await fetch(`/api/patients/${patient.id}`, {
+                                method: 'PATCH',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ statusId: checked ? 1 : 2 })
+                              });
+                              if (response.ok) {
+                                // Refresh patient data
+                                window.location.reload();
+                              }
+                            } catch (error) {
+                              console.error('Failed to update patient status:', error);
+                            }
+                          }}
+                          data-testid="patient-status-toggle"
+                        />
+                        <Badge className={patient.statusId === 1 ? "status-badge status-active" : "status-badge status-inactive"}>
+                          {patient.statusId === 1 ? 'Active' : 'Inactive'}
+                        </Badge>
                       </div>
                     </div>
                   </div>
@@ -309,9 +277,11 @@ export default function PatientDetailsPage() {
               </CardContent>
             </Card>
 
-            {/* New Financial System */}
-            <FinancialOverview patientId={patientId} />
-            <TransactionHistory patientId={patientId} />
+            {/* Financial Management */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <FinancialOverview patientId={patientId} />
+              <TransactionHistory patientId={patientId} />
+            </div>
           </div>
 
           {/* Sidebar */}
@@ -374,78 +344,16 @@ export default function PatientDetailsPage() {
               </CardContent>
             </Card>
 
-            {/* Payment History Card */}
+            {/* Financial Summary Card */}
             <Card>
               <CardHeader>
-                <CardTitle>{t.recentPayments}</CardTitle>
+                <CardTitle>Financial Summary</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
-                  {actualPayments.length > 0 ? (
-                    <div className="space-y-2">
-                      {actualPayments.slice(0, 5).map((payment: any) => (
-                        <div key={payment.id} className="flex items-center justify-between p-2 bg-green-50 border border-green-100 rounded-lg">
-                          <div>
-                            <p className="text-xs font-medium text-green-900">{payment.paymentMethod}</p>
-                            <p className="text-xs text-green-600">
-                              {format(new Date(payment.paidAt), 'MMM dd, yyyy')}
-                              {payment.doctorName && <span className="ml-1">• {payment.doctorName}</span>}
-                            </p>
-                            {payment.treatmentContext && (
-                              <p className="text-xs text-green-500">{payment.treatmentContext}</p>
-                            )}
-                          </div>
-                          <p className="text-sm font-semibold text-green-700">
-                            {formatCurrency(payment.amount, payment.currency || 'EUR')}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-gray-500 text-center py-4">No payments recorded</p>
-                  )}
-                  
-                  {/* Outstanding Balances Section */}
-                  {outstandingBalances.length > 0 && (
-                    <div className="border-t pt-3">
-                      <p className="text-sm font-medium text-red-600 mb-2">Outstanding Balances</p>
-                      <div className="space-y-2">
-                        {outstandingBalances.slice(0, 3).map((payment: any) => (
-                          <div key={payment.id} className="flex items-center justify-between p-2 bg-red-50 border border-red-100 rounded-lg">
-                            <div>
-                              <p className="text-xs font-medium text-red-900">Outstanding</p>
-                              <p className="text-xs text-red-600">
-                                {format(new Date(payment.paidAt), 'MMM dd, yyyy')}
-                                {payment.doctorName && <span className="ml-1">• {payment.doctorName}</span>}
-                              </p>
-                              {payment.treatmentContext && (
-                                <p className="text-xs text-red-500">{payment.treatmentContext}</p>
-                              )}
-                            </div>
-                            <p className="text-sm font-semibold text-red-700">
-                              {formatCurrency(payment.amount, payment.currency || 'EUR')}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  
-                  <div className="pt-2 border-t">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-foreground">{t.totalPaid}</span>
-                      <span className="text-lg font-bold text-green-600">{formatMultiCurrencyTotal(paymentTotals)}</span>
-                    </div>
-                    {Object.keys(outstandingTotals).length > 0 && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-foreground">{t.balanceDue}</span>
-                        <span className="text-lg font-bold text-red-600">{formatMultiCurrencyTotal(outstandingTotals)}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div className="pt-3">
-
+                <div className="text-center py-4">
+                  <p className="text-sm text-gray-500">
+                    View detailed financial information in the Financial Overview section below.
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -493,23 +401,19 @@ export default function PatientDetailsPage() {
 
         {/* Files and Photos Section */}
         <div className="space-y-6">
-          <Tabs defaultValue="upload" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="upload">Upload Files</TabsTrigger>
-              <TabsTrigger value="photos">Clinical Photos Timeline</TabsTrigger>
-              <TabsTrigger value="files">All Files</TabsTrigger>
+          <Tabs defaultValue="files" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="files">Patient Files</TabsTrigger>
+              <TabsTrigger value="photos">Clinical Photos</TabsTrigger>
             </TabsList>
             
-            <TabsContent value="upload" className="space-y-6">
+            <TabsContent value="files" className="space-y-6">
               <FileUpload patientId={patientId} />
+              <FileList patientId={patientId} />
             </TabsContent>
             
             <TabsContent value="photos">
               <ClinicalPhotoTimeline patientId={patientId} />
-            </TabsContent>
-            
-            <TabsContent value="files">
-              <FileList patientId={patientId} />
             </TabsContent>
           </Tabs>
         </div>

@@ -43,7 +43,7 @@ export function TransactionHistory({ patientId }: TransactionHistoryProps) {
     );
   }
 
-  if (!transactions || transactions.length === 0) {
+  if (!transactions || !Array.isArray(transactions) || transactions.length === 0) {
     return (
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
@@ -131,7 +131,7 @@ export function TransactionHistory({ patientId }: TransactionHistoryProps) {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {transactions.map((transaction: any) => (
+          {Array.isArray(transactions) && transactions.map((transaction: any) => (
             <div
               key={transaction.id}
               className="flex items-start gap-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
@@ -201,7 +201,7 @@ export function TransactionHistory({ patientId }: TransactionHistoryProps) {
           ))}
         </div>
         
-        {transactions.length > 5 && (
+        {Array.isArray(transactions) && transactions.length > 5 && (
           <div className="text-center mt-4">
             <Button variant="outline" size="sm">
               Load More Transactions

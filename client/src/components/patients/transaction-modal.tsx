@@ -104,7 +104,7 @@ export function TransactionModal({ isOpen, onClose, patientId, type }: Transacti
   const onSubmit = async (data: TransactionFormData) => {
     setIsSubmitting(true);
     try {
-      const amount = toSmallestUnit(parseFloat(data.amount), data.currency as Currency);
+      const amount = toSmallestUnit(parseFloat(data.amount));
       
       const transactionData = {
         patientId,
@@ -206,8 +206,8 @@ export function TransactionModal({ isOpen, onClose, patientId, type }: Transacti
                       </FormControl>
                       <SelectContent>
                         {SUPPORTED_CURRENCIES.map((currency) => (
-                          <SelectItem key={currency} value={currency}>
-                            {currency}
+                          <SelectItem key={currency.value} value={currency.value}>
+                            {currency.label}
                           </SelectItem>
                         ))}
                       </SelectContent>

@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatCurrency, type Currency } from "@/lib/currency";
-import { usePatientFinancialSummary } from "@/hooks/use-financial";
+import { usePatientFinancialSummary, type PatientFinancialSummary } from "@/hooks/use-financial";
 import { Plus, CreditCard, Receipt, TrendingUp, AlertCircle } from "lucide-react";
 import { useState } from "react";
 import { TransactionModal } from "@/components/patients/transaction-modal";
@@ -13,6 +13,7 @@ interface FinancialOverviewProps {
 
 export function FinancialOverview({ patientId }: FinancialOverviewProps) {
   const { data: summary, isLoading } = usePatientFinancialSummary(patientId);
+  const typedSummary = summary as PatientFinancialSummary | undefined;
   const [showTransactionModal, setShowTransactionModal] = useState(false);
   const [selectedTransactionType, setSelectedTransactionType] = useState<'payment' | 'charge' | 'refund'>('payment');
 
@@ -52,8 +53,8 @@ export function FinancialOverview({ patientId }: FinancialOverviewProps) {
     );
   }
 
-  const currencies = Object.keys(summary?.balance || {}) as Currency[];
-  const hasOutstandingBalances = currencies.some(currency => (summary?.balance?.[currency] || 0) > 0);
+  const currencies = Object.keys(typedSummary?.balance || {}) as Currency[];
+  const hasOutstandingBalances = currencies.some(currency => (typedSummary?.balance?.[currency] || 0) > 0);
 
   const handleAddTransaction = (type: 'payment' | 'charge' | 'refund') => {
     setSelectedTransactionType(type);
@@ -63,29 +64,31 @@ export function FinancialOverview({ patientId }: FinancialOverviewProps) {
   return (
     <>
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <CreditCard className="h-5 w-5" />
-            Financial Overview
-          </CardTitle>
-          <div className="flex gap-2">
-            <Button 
-              size="sm" 
-              variant="outline"
-              onClick={() => handleAddTransaction('charge')}
-              data-testid="button-add-charge"
-            >
-              <Plus className="h-4 w-4 mr-1" />
-              Add Charge
-            </Button>
-            <Button 
-              size="sm"
-              onClick={() => handleAddTransaction('payment')}
-              data-testid="button-add-payment"
-            >
-              <Plus className="h-4 w-4 mr-1" />
-              Record Payment
-            </Button>
+        <CardHeader className="pb-3">
+          <div className="flex flex-col gap-3">
+            <CardTitle className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5" />
+              Financial Overview
+            </CardTitle>
+            <div className="flex gap-2 flex-wrap">
+              <Button 
+                size="sm" 
+                variant="outline"
+                onClick={() => handleAddTransaction('charge')}
+                data-testid="button-add-charge"
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                Add Charge
+              </Button>
+              <Button 
+                size="sm"
+                onClick={() => handleAddTransaction('payment')}
+                data-testid="button-add-payment"
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                Record Payment
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -109,15 +112,15 @@ export function FinancialOverview({ patientId }: FinancialOverviewProps) {
                     <span className="font-medium">{currency}</span>
                     <span 
                       className={`font-semibold ${
-                        (summary?.balance?.[currency] || 0) > 0 
+                        (typedSummary?.balance?.[currency] || 0) > 0 
                           ? 'text-red-600 dark:text-red-400' 
-                          : (summary?.balance?.[currency] || 0) < 0 
+                          : (typedSummary?.balance?.[currency] || 0) < 0 
                             ? 'text-green-600 dark:text-green-400'
                             : 'text-gray-600 dark:text-gray-400'
                       }`}
                       data-testid={`balance-${currency.toLowerCase()}`}
                     >
-                      {formatCurrency(summary?.balance?.[currency] || 0, currency)}
+                      {formatCurrency(typedSummary?.balance?.[currency] || 0, currency)}
                     </span>
                   </div>
                 ))
@@ -135,11 +138,11 @@ export function FinancialOverview({ patientId }: FinancialOverviewProps) {
                   Total Charges
                 </div>
                 {currencies.map(currency => (
-                  (summary?.totalCharges?.[currency] || 0) > 0 && (
+                  (typedSummary?.totalCharges?.[currency] || 0) > 0 && (
                     <div key={currency} className="flex justify-between text-sm">
                       <span>{currency}</span>
                       <span className="font-medium" data-testid={`charges-${currency.toLowerCase()}`}>
-                        {formatCurrency(summary?.totalCharges?.[currency] || 0, currency)}
+                        {formatCurrency(typedSummary?.totalCharges?.[currency] || 0, currency)}
                       </span>
                     </div>
                   )
@@ -153,11 +156,11 @@ export function FinancialOverview({ patientId }: FinancialOverviewProps) {
                   Total Payments
                 </div>
                 {currencies.map(currency => (
-                  (summary?.totalPayments?.[currency] || 0) > 0 && (
+                  (typedSummary?.totalPayments?.[currency] || 0) > 0 && (
                     <div key={currency} className="flex justify-between text-sm">
                       <span>{currency}</span>
                       <span className="font-medium text-green-600 dark:text-green-400" data-testid={`payments-${currency.toLowerCase()}`}>
-                        {formatCurrency(summary?.totalPayments?.[currency] || 0, currency)}
+                        {formatCurrency(typedSummary?.totalPayments?.[currency] || 0, currency)}
                       </span>
                     </div>
                   )
@@ -165,18 +168,18 @@ export function FinancialOverview({ patientId }: FinancialOverviewProps) {
               </div>
 
               {/* Total Refunds */}
-              {Object.values(summary?.totalRefunds || {}).some((amount: any) => (amount || 0) > 0) && (
+              {Object.values(typedSummary?.totalRefunds || {}).some((amount: any) => (amount || 0) > 0) && (
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-400">
                     <TrendingUp className="h-4 w-4" />
                     Total Refunds
                   </div>
                   {currencies.map(currency => (
-                    (summary?.totalRefunds?.[currency] || 0) > 0 && (
+                    (typedSummary?.totalRefunds?.[currency] || 0) > 0 && (
                       <div key={currency} className="flex justify-between text-sm">
                         <span>{currency}</span>
                         <span className="font-medium text-blue-600 dark:text-blue-400" data-testid={`refunds-${currency.toLowerCase()}`}>
-                          {formatCurrency(summary?.totalRefunds?.[currency] || 0, currency)}
+                          {formatCurrency(typedSummary?.totalRefunds?.[currency] || 0, currency)}
                         </span>
                       </div>
                     )
@@ -187,13 +190,13 @@ export function FinancialOverview({ patientId }: FinancialOverviewProps) {
           )}
 
           {/* Summary Stats */}
-          {(summary?.transactionCount || 0) > 0 && (
+          {(typedSummary?.transactionCount || 0) > 0 && (
             <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
               <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400">
-                <span>Total Transactions: {summary?.transactionCount || 0}</span>
-                {summary?.lastTransactionDate && (
+                <span>Total Transactions: {typedSummary?.transactionCount || 0}</span>
+                {typedSummary?.lastTransactionDate && (
                   <span>
-                    Last Transaction: {new Date(summary.lastTransactionDate).toLocaleDateString()}
+                    Last Transaction: {new Date(typedSummary.lastTransactionDate).toLocaleDateString()}
                   </span>
                 )}
               </div>
