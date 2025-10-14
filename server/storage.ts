@@ -47,6 +47,8 @@ export interface IStorage {
   
   // Medical Conditions
   getMedicalConditions(): Promise<MedicalCondition[]>;
+  getPatientMedicalConditions(patientId: number): Promise<string[]>;
+  setPatientMedicalConditions(patientId: number, conditionNames: string[]): Promise<void>;
   
   // Tooth Records (Odontogram)
   getPatientToothRecords(patientId: number): Promise<ToothRecord[]>;
@@ -150,6 +152,7 @@ export class MemStorage implements IStorage {
   private appointments: Map<number, Appointment>;
   private patientFiles: Map<number, PatientFile>;
   private medicalConditions: Map<number, MedicalCondition>;
+  private patientMedicalConditions: Map<number, Set<number>>;
   private toothRecords: Map<number, ToothRecord>;
   private medicalNotes: Map<number, MedicalNote>;
   private treatmentHistory: Map<number, TreatmentHistory>;
@@ -178,6 +181,7 @@ export class MemStorage implements IStorage {
     this.appointments = new Map();
     this.patientFiles = new Map();
     this.medicalConditions = new Map();
+    this.patientMedicalConditions = new Map();
     this.toothRecords = new Map();
     this.medicalNotes = new Map();
     this.treatmentHistory = new Map();
@@ -300,6 +304,28 @@ export class MemStorage implements IStorage {
       this.appointments.set(appointment.id, appointment);
     });
     this.idCounters.appointments = 3;
+
+    // Seed medical conditions
+    const commonConditions = [
+      "Diabetes", "Hypertension", "Heart Disease", "Allergies", "Asthma",
+      "Arthritis", "Depression", "Anxiety", "High Cholesterol", "Thyroid Disorder",
+      "Kidney Disease", "Liver Disease", "Cancer History", "Stroke History", "Epilepsy"
+    ];
+    
+    commonConditions.forEach((conditionName, index) => {
+      const condition: MedicalCondition = {
+        id: index + 1,
+        name: conditionName,
+        description: null,
+        createdAt: new Date("2024-01-01")
+      };
+      this.medicalConditions.set(condition.id, condition);
+    });
+    this.idCounters.conditions = commonConditions.length + 1;
+
+    // Seed some patient medical conditions for sample patients
+    this.patientMedicalConditions.set(1, new Set([1, 2])); // John has Diabetes and Hypertension
+    this.patientMedicalConditions.set(2, new Set([4])); // Jane has Allergies
 
     // Seed roles
     const sampleRoles: Role[] = [
@@ -619,6 +645,11 @@ export class MemStorage implements IStorage {
       updatedAt: new Date()
     };
     this.patients.set(id, newPatient);
+    
+    if (patient.medicalConditions && patient.medicalConditions.length > 0) {
+      await this.setPatientMedicalConditions(id, patient.medicalConditions);
+    }
+    
     return newPatient;
   }
 
@@ -632,6 +663,11 @@ export class MemStorage implements IStorage {
       updatedAt: new Date()
     };
     this.patients.set(id, updated);
+    
+    if (patient.medicalConditions !== undefined) {
+      await this.setPatientMedicalConditions(id, patient.medicalConditions);
+    }
+    
     return updated;
   }
 
@@ -747,6 +783,43 @@ export class MemStorage implements IStorage {
 
   async getMedicalConditions(): Promise<MedicalCondition[]> {
     return Array.from(this.medicalConditions.values());
+  }
+
+  async getPatientMedicalConditions(patientId: number): Promise<string[]> {
+    const conditionIds = this.patientMedicalConditions.get(patientId) || new Set();
+    const conditionNames: string[] = [];
+    
+    conditionIds.forEach(conditionId => {
+      const condition = this.medicalConditions.get(conditionId);
+      if (condition) {
+        conditionNames.push(condition.name);
+      }
+    });
+    
+    return conditionNames;
+  }
+
+  async setPatientMedicalConditions(patientId: number, conditionNames: string[]): Promise<void> {
+    const conditionIds = new Set<number>();
+    
+    for (const name of conditionNames) {
+      let condition = Array.from(this.medicalConditions.values()).find(c => c.name === name);
+      
+      if (!condition) {
+        const id = this.idCounters.conditions++;
+        condition = {
+          id,
+          name,
+          description: null,
+          createdAt: new Date()
+        };
+        this.medicalConditions.set(id, condition);
+      }
+      
+      conditionIds.add(condition.id);
+    }
+    
+    this.patientMedicalConditions.set(patientId, conditionIds);
   }
 
   // Tooth Records (Odontogram) methods
