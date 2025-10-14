@@ -232,6 +232,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/patients/:patientId/medical-conditions", async (req, res) => {
+    try {
+      const patientId = parseInt(req.params.patientId);
+      const conditions = await storage.getPatientMedicalConditions(patientId);
+      res.json(conditions);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch patient medical conditions" });
+    }
+  });
+
   // Tooth Records (Odontogram) routes
   app.get("/api/patients/:patientId/teeth", async (req, res) => {
     try {
