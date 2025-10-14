@@ -43,6 +43,7 @@ export function PatientSearch({
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-80 pl-10"
+            data-testid="input-search-patients"
           />
         </div>
         
