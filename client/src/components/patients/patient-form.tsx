@@ -1,6 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -28,6 +29,17 @@ const commonMedicalConditions = [
 export function PatientForm({ initialData, onSubmit, loading, onCancel }: PatientFormProps) {
   const [selectedConditions, setSelectedConditions] = useState<string[]>([]);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+
+  const { data: existingConditions } = useQuery<string[]>({
+    queryKey: ['/api/patients', initialData?.id, 'medical-conditions'],
+    enabled: !!initialData?.id,
+  });
+
+  useEffect(() => {
+    if (existingConditions && existingConditions.length > 0) {
+      setSelectedConditions(existingConditions);
+    }
+  }, [existingConditions]);
 
   const form = useForm<InsertPatient>({
     resolver: zodResolver(insertPatientSchema),
