@@ -111,3 +111,10 @@ The system includes session-based authentication infrastructure, prepared for fu
 - **C# Backend Documentation**: Created comprehensive API documentation (API_DOCUMENTATION_CSHARP.md) with all 50+ endpoints, request/response models, and validation rules
 - **C# Model Classes**: Created complete entity models (CSHARP_MODELS.cs) including Patient, Appointment, Files, Odontogram, Financial Transactions, Employees, Roles, and all DTOs
 - **Schema Alignment**: Ensured C# models match PostgreSQL database schema including medical conditions relationship tables and multi-currency support
+
+### Medical Conditions & Search Enhancement (October 2025)
+- **Medical Conditions Storage**: Implemented complete backend support for patient medical conditions with storage methods (getPatientMedicalConditions, setPatientMedicalConditions) and API endpoint
+- **Medical Conditions Display**: Enhanced patient details page to prominently display medical conditions with red/warning alert box styling including warning icon, alert heading, and destructive badge variants for accessibility
+- **Form Integration**: Updated patient form to automatically load existing medical conditions when editing, properly initializing checkboxes
+- **Patient Search**: Verified and tested full patient search functionality with debounced search (300ms) filtering by first name, last name, phone, and email
+- **Dark Mode Support**: All medical condition alerts properly support dark mode with appropriate color overrides
