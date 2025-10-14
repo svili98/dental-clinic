@@ -7,7 +7,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { insertPatientSchema, type InsertPatient, type Patient, PATIENT_STATUSES } from "@shared/schema";
 import { X, Upload, FileText } from "lucide-react";
@@ -83,15 +82,8 @@ export function PatientForm({ initialData, onSubmit, loading, onCancel }: Patien
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>
-          {initialData ? "Edit Patient" : "Add New Patient"}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormField
                 control={form.control}
@@ -353,7 +345,5 @@ export function PatientForm({ initialData, onSubmit, loading, onCancel }: Patien
             </div>
           </form>
         </Form>
-      </CardContent>
-    </Card>
   );
 }

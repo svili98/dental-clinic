@@ -170,7 +170,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "No file uploaded" });
       }
 
-      const { patientId, category, description, tags } = req.body;
+      const { patientId, category, description, tags, toothNumbers, treatmentDate } = req.body;
       
       if (!patientId) {
         return res.status(400).json({ message: "Patient ID is required" });
@@ -179,12 +179,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const fileData = {
         patientId: parseInt(patientId),
         fileName: req.file.originalname,
-        fileSize: req.file.size,
-        mimeType: req.file.mimetype,
-        category: category || 'document',
-        description: description || req.file.originalname,
-        tags: tags ? tags.split(',').map((tag: string) => tag.trim()) : [],
         filePath: `/uploads/${Date.now()}-${req.file.originalname}`, // Mock file path
+        fileType: req.file.mimetype,
+        fileSize: req.file.size,
+        description: description || req.file.originalname,
+        thumbnailPath: req.file.mimetype.startsWith('image/') ? `/thumbnails/${req.file.originalname}` : null,
+        category: category || 'document',
+        tags: tags ? tags.split(',').map((tag: string) => tag.trim()) : null,
+        toothNumbers: toothNumbers ? toothNumbers.split(',').map((n: string) => parseInt(n.trim())).filter((n: number) => !isNaN(n)) : null,
+        treatmentDate: treatmentDate || null,
+        metadata: {
+          originalName: req.file.originalname,
+          uploadedBy: "current_user",
+          fileCategory: category || 'document',
+          isImage: req.file.mimetype.startsWith('image/'),
+          needsSpecialViewing: category === 'xray'
+        }
       };
 
       const validatedData = insertPatientFileSchema.parse(fileData);

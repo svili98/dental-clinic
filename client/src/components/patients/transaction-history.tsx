@@ -3,7 +3,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatCurrency, type Currency } from "@/lib/currency";
 import { usePatientTransactions } from "@/hooks/use-financial";
-import { useTranslation } from "@/lib/i18n";
 import { 
   Receipt, 
   CreditCard, 
@@ -20,7 +19,6 @@ interface TransactionHistoryProps {
 
 export function TransactionHistory({ patientId }: TransactionHistoryProps) {
   const { data: transactions, isLoading, refetch } = usePatientTransactions(patientId);
-  const { t } = useTranslation();
 
   if (isLoading) {
     return (
@@ -28,7 +26,7 @@ export function TransactionHistory({ patientId }: TransactionHistoryProps) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Receipt className="h-5 w-5" />
-            {t.transactionHistory}
+            Transaction History
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -51,7 +49,7 @@ export function TransactionHistory({ patientId }: TransactionHistoryProps) {
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <Receipt className="h-5 w-5" />
-            {t.transactionHistory}
+            Transaction History
           </CardTitle>
           <Button
             variant="outline"
@@ -65,7 +63,7 @@ export function TransactionHistory({ patientId }: TransactionHistoryProps) {
         <CardContent>
           <div className="text-center py-8">
             <Receipt className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500">{t.noTransactionsRecorded}</p>
+            <p className="text-gray-500">No transactions recorded</p>
             <p className="text-sm text-gray-400 mt-1">
               Financial transactions will appear here
             </p>

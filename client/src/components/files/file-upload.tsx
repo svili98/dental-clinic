@@ -212,7 +212,10 @@ export function FileUpload({ patientId, onUploadSuccess }: FileUploadProps) {
           }
         };
 
-        await createFileMutation.mutateAsync(fileData);
+        await createFileMutation.mutateAsync({ 
+          file, 
+          metadata: fileData 
+        });
         
         toast({
           title: "Success",

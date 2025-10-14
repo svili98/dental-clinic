@@ -131,11 +131,7 @@ export default function PatientsPage() {
               <TabsContent value="active" className="m-0">
                 <div className="px-6 pb-6">
                   <PatientTable 
-                    patients={patients.filter(p => {
-                      // Filter active patients - simple logic based on recent activity
-                      const daysSinceLastVisit = (new Date().getTime() - new Date(p.updatedAt).getTime()) / (1000 * 60 * 60 * 24);
-                      return daysSinceLastVisit <= 180;
-                    })}
+                    patients={patients.filter(p => p.statusId === 1)} // Active status
                     loading={isLoading}
                     compact={viewMode === "grid"}
                   />
@@ -144,10 +140,7 @@ export default function PatientsPage() {
               <TabsContent value="inactive" className="m-0">
                 <div className="px-6 pb-6">
                   <PatientTable 
-                    patients={patients.filter(p => {
-                      const daysSinceLastVisit = (new Date().getTime() - new Date(p.updatedAt).getTime()) / (1000 * 60 * 60 * 24);
-                      return daysSinceLastVisit > 180;
-                    })}
+                    patients={patients.filter(p => p.statusId === 2)} // Inactive status
                     loading={isLoading}
                     compact={viewMode === "grid"}
                   />

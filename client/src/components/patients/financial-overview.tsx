@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { formatCurrency, type Currency } from "@/lib/currency";
 import { usePatientFinancialSummary, type PatientFinancialSummary } from "@/hooks/use-financial";
 import { Plus, CreditCard, Receipt, TrendingUp, AlertCircle } from "lucide-react";
-import { useTranslation } from "@/lib/i18n";
 import { useState } from "react";
 import { TransactionModal } from "@/components/patients/transaction-modal";
 
@@ -14,7 +13,6 @@ interface FinancialOverviewProps {
 
 export function FinancialOverview({ patientId }: FinancialOverviewProps) {
   const { data: summary, isLoading } = usePatientFinancialSummary(patientId);
-  const { t } = useTranslation();
   const typedSummary = summary as PatientFinancialSummary | undefined;
   const [showTransactionModal, setShowTransactionModal] = useState(false);
   const [selectedTransactionType, setSelectedTransactionType] = useState<'payment' | 'charge' | 'refund'>('payment');
@@ -80,7 +78,7 @@ export function FinancialOverview({ patientId }: FinancialOverviewProps) {
                 data-testid="button-add-charge"
               >
                 <Plus className="h-4 w-4 mr-1" />
-                {t.addCharge}
+                Add Charge
               </Button>
               <Button 
                 size="sm"

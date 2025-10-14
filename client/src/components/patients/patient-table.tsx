@@ -9,8 +9,8 @@ import { PatientActionsMenu } from "./patient-actions-menu";
 import { Calendar, Phone, Mail, MapPin, Activity } from "lucide-react";
 import { Link } from "wouter";
 import type { Patient } from "@shared/schema";
+import { PATIENT_STATUSES } from "@shared/schema";
 import { format, parseISO, differenceInYears } from "date-fns";
-import { useTranslation } from "@/lib/i18n";
 
 interface PatientTableProps {
   patients: Patient[];
@@ -19,7 +19,6 @@ interface PatientTableProps {
 }
 
 export function PatientTable({ patients, loading, compact = false }: PatientTableProps) {
-  const { t } = useTranslation();
   const [selectedPatients, setSelectedPatients] = useState<number[]>([]);
 
   const toggleSelectAll = () => {
@@ -47,13 +46,25 @@ export function PatientTable({ patients, loading, compact = false }: PatientTabl
   };
 
   const getPatientStatus = (patient: Patient) => {
-    // Simple status logic - could be enhanced based on last visit date
-    const lastVisit = new Date(patient.updatedAt);
-    const daysSinceLastVisit = differenceInYears(new Date(), lastVisit) * 365;
+    const status = PATIENT_STATUSES[patient.statusId as keyof typeof PATIENT_STATUSES];
+    if (!status) {
+      return { status: "Unknown", variant: "secondary" as const, color: "gray" };
+    }
     
-    if (daysSinceLastVisit > 365) return { status: "Inactive", variant: "secondary" as const };
-    if (daysSinceLastVisit > 180) return { status: "At Risk", variant: "destructive" as const };
-    return { status: "Active", variant: "default" as const };
+    // Map colors to badge variants
+    const variantMap = {
+      green: "default" as const,
+      gray: "secondary" as const,
+      blue: "outline" as const,
+      orange: "destructive" as const,
+      purple: "outline" as const
+    };
+    
+    return { 
+      status: status.name, 
+      variant: variantMap[status.color as keyof typeof variantMap] || "secondary" as const,
+      color: status.color
+    };
   };
 
   if (loading) {
@@ -115,7 +126,7 @@ export function PatientTable({ patients, loading, compact = false }: PatientTabl
                   <Link href={`/patients/${patient.id}`} className="block">
                     <div className="flex items-center space-x-3 group-hover:text-blue-600 transition-colors cursor-pointer">
                       <Avatar className="h-10 w-10">
-                        <AvatarImage src={patient.profileImageUrl || ""} />
+                        <AvatarImage src={patient.profilePicture || ""} />
                         <AvatarFallback className="bg-blue-100 text-blue-600 font-medium">
                           {initials}
                         </AvatarFallback>

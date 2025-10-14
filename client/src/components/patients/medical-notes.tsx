@@ -33,8 +33,8 @@ export function MedicalNotes({ patientId }: MedicalNotesProps) {
     e.preventDefault();
     if (!title.trim() || !content.trim()) {
       toast({
-        title: t.error,
-        description: t.titleRequired || "Title and content are required",
+        title: "Error",
+        description: "Title and content are required",
         variant: "destructive",
       });
       return;
@@ -49,8 +49,8 @@ export function MedicalNotes({ patientId }: MedicalNotesProps) {
       });
 
       toast({
-        title: t.success,
-        description: t.medicalNoteAddedSuccessfully || "Medical note added successfully",
+        title: "Success",
+        description: "Medical note added successfully",
       });
 
       // Reset form
@@ -60,8 +60,8 @@ export function MedicalNotes({ patientId }: MedicalNotesProps) {
       setDialogOpen(false);
     } catch (error) {
       toast({
-        title: t.error,
-        description: t.failedToAddMedicalNote || "Failed to add medical note",
+        title: "Error",
+        description: "Failed to add medical note",
         variant: "destructive",
       });
     }
@@ -82,39 +82,39 @@ export function MedicalNotes({ patientId }: MedicalNotesProps) {
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center">
             <FileText className="h-5 w-5 mr-2" />
-            {t.medicalNotes}
+            Medical Notes
           </CardTitle>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
                 <Plus className="h-4 w-4 mr-2" />
-                {t.addMedicalNote}
+                Add Medical Note
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-lg">
               <DialogHeader>
-                <DialogTitle>{t.addMedicalNote}</DialogTitle>
+                <DialogTitle>Add Medical Note</DialogTitle>
                 <DialogDescription>
-                  {t.addMedicalNoteDescription || "Add a new medical note to the patient's record"}
+                  Add a new medical note to the patient's record
                 </DialogDescription>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium">{t.noteType}</label>
+                  <label className="text-sm font-medium">Note Type</label>
                   <Select value={noteType} onValueChange={setNoteType}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="general">{t.general || "General"}</SelectItem>
-                      <SelectItem value="treatment">{t.treatment}</SelectItem>
-                      <SelectItem value="diagnosis">{t.diagnosis || "Diagnosis"}</SelectItem>
-                      <SelectItem value="follow-up">{t.followUp || "Follow-up"}</SelectItem>
+                      <SelectItem value="general">General</SelectItem>
+                      <SelectItem value="treatment">Treatment</SelectItem>
+                      <SelectItem value="diagnosis">Diagnosis</SelectItem>
+                      <SelectItem value="follow-up">Follow-up</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <label className="text-sm font-medium">{t.title}</label>
+                  <label className="text-sm font-medium">Title</label>
                   <Input
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
@@ -123,7 +123,7 @@ export function MedicalNotes({ patientId }: MedicalNotesProps) {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium">{t.content}</label>
+                  <label className="text-sm font-medium">Content</label>
                   <Textarea
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
@@ -134,10 +134,10 @@ export function MedicalNotes({ patientId }: MedicalNotesProps) {
                 </div>
                 <div className="flex justify-end space-x-2">
                   <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
-                    {t.cancel || "Cancel"}
+                    Cancel
                   </Button>
                   <Button type="submit" disabled={createNoteMutation.isPending}>
-                    {createNoteMutation.isPending ? (t.adding || "Adding...") : (t.addNote || "Add Note")}
+                    {createNoteMutation.isPending ? "Adding..." : "Add Note"}
                   </Button>
                 </div>
               </form>

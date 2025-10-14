@@ -24,7 +24,6 @@ import { Link, useParams } from "wouter";
 import { useState } from "react";
 import { ArrowLeft, Edit, Calendar, FileText, Phone, Mail, MapPin } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Switch } from "@/components/ui/switch";
 import { format } from "date-fns";
 
 export default function PatientDetailsPage() {
@@ -111,312 +110,196 @@ export default function PatientDetailsPage() {
           </div>
         </div>
 
-        {/* Patient Information */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
-            {/* Medical Condition Alert */}
-            {(patient as any).medicalConditions && (patient as any).medicalConditions.length > 0 && (
-              <Card className="border-orange-200 bg-orange-50 dark:bg-orange-950 dark:border-orange-800">
-                <CardHeader>
-                  <CardTitle className="text-orange-800 dark:text-orange-200 flex items-center">
-                    <svg className="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                    </svg>
-                    Medical Conditions Alert
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-wrap gap-2">
-                    {((patient as any).medicalConditions as string[]).map((condition: string, index: number) => (
-                      <Badge key={index} variant="outline" className="bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200">
-                        {condition}
-                      </Badge>
-                    ))}
-                  </div>
-                  <p className="text-sm text-orange-700 dark:text-orange-300 mt-2">
-                    Please review medical conditions before treatment
-                  </p>
-                </CardContent>
-              </Card>
-            )}
+        {/* Main Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <div className="lg:col-span-3 space-y-6">
 
-            {/* Basic Information */}
+            {/* Patient Overview */}
             <Card>
               <CardHeader>
-                <CardTitle>{t.patientInformation}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">{t.fullName}</label>
-                      <p className="text-sm text-gray-900">{patient.firstName} {patient.lastName}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">{t.dateOfBirth}</label>
-                      <p className="text-sm text-gray-900">
-                        {format(new Date(patient.dateOfBirth), 'MMMM dd, yyyy')}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">{t.gender}</label>
-                      <p className="text-sm text-gray-900">{patient.gender}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">JMBG</label>
-                      <p className="text-sm text-gray-900">{patient.jmbg}</p>
+                <CardTitle className="flex items-center gap-3">
+                  <PatientAvatar patient={patient} size="md" />
+                  <div>
+                    <div className="text-lg font-semibold">{patient.firstName} {patient.lastName}</div>
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                      <span>Born {format(new Date(patient.dateOfBirth), 'MMM dd, yyyy')}</span>
+                      <span>•</span>
+                      <span>{patient.gender}</span>
+                      <span>•</span>
+                      <span>ID #{patient.id}</span>
+                      <span>•</span>
+                      {(() => {
+                        const status = PATIENT_STATUSES[patient.statusId as keyof typeof PATIENT_STATUSES];
+                        if (!status) return null;
+                        const getVariant = (color: string) => {
+                          switch (color) {
+                            case 'green': return 'default' as const;
+                            case 'gray': return 'secondary' as const;
+                            case 'blue': return 'outline' as const;
+                            case 'orange': return 'destructive' as const;
+                            case 'purple': return 'outline' as const;
+                            default: return 'secondary' as const;
+                          }
+                        };
+                        return (
+                          <Badge variant={getVariant(status.color)} className="text-xs">
+                            {status.name}
+                          </Badge>
+                        );
+                      })()}
                     </div>
                   </div>
-                  <div className="space-y-4">
-                    <div className="flex items-center space-x-2">
-                      <Phone className="h-4 w-4 text-gray-400" />
-                      <div>
-                        <label className="text-sm font-medium text-muted-foreground">{t.phone}</label>
-                        <p className="text-sm text-gray-900">{patient.phone}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Mail className="h-4 w-4 text-gray-400" />
-                      <div>
-                        <label className="text-sm font-medium text-muted-foreground">{t.email}</label>
-                        <p className="text-sm text-gray-900">{patient.email || 'Not provided'}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <MapPin className="h-4 w-4 text-gray-400" />
-                      <div>
-                        <label className="text-sm font-medium text-muted-foreground">{t.address}</label>
-                        <p className="text-sm text-gray-900">{patient.address || 'Not provided'}</p>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">{t.status}</label>
-                      <div className="mt-1 flex items-center gap-2">
-                        <Switch
-                          checked={patient.statusId === 1}
-                          onCheckedChange={async (checked) => {
-                            try {
-                              const response = await fetch(`/api/patients/${patient.id}`, {
-                                method: 'PATCH',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ statusId: checked ? 1 : 2 })
-                              });
-                              if (response.ok) {
-                                // Refresh patient data
-                                window.location.reload();
-                              }
-                            } catch (error) {
-                              console.error('Failed to update patient status:', error);
-                            }
-                          }}
-                          data-testid="patient-status-toggle"
-                        />
-                        <Badge className={patient.statusId === 1 ? "status-badge status-active" : "status-badge status-inactive"}>
-                          {patient.statusId === 1 ? 'Active' : 'Inactive'}
-                        </Badge>
-                      </div>
-                    </div>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="flex items-center gap-2">
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm">{patient.phone}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm">{patient.email || 'No email'}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm">{patient.address || 'No address'}</span>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Recent Appointments */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle>{t.appointments}</CardTitle>
-                  <Button variant="ghost" size="sm" className="text-blue-600">
-                    View All
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {appointmentsData?.items && appointmentsData.items.length > 0 ? (
-                  <div className="space-y-4">
-                    {appointmentsData.items.slice(0, 3).map((appointment) => (
-                      <div key={appointment.id} className="border border-border rounded-lg p-4 hover:bg-muted/50 transition-colors">
-                        <div className="flex items-start justify-between mb-2">
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-2 mb-1">
-                              <h4 className="text-sm font-semibold text-foreground">
-                                {appointment.description || t.dentalCleaning}
-                              </h4>
-                              <Badge className={`status-badge status-${appointment.status} text-xs`}>
-                                {appointment.status === 'scheduled' ? t.appointmentScheduled :
-                                 appointment.status === 'completed' ? t.appointmentCompleted : 
-                                 t.appointmentCancelled}
-                              </Badge>
-                            </div>
-                            <p className="text-xs text-muted-foreground mb-1">
-                              {format(new Date(appointment.appointmentDate), 'EEEE, MMMM dd, yyyy \'at\' h:mm a')} 
-                              <span className="mx-1">•</span>
-                              {t.duration}: {appointment.duration} min
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-sm font-medium text-green-600">
-                              {(() => {
-                                const treatment = treatmentsArray.find((t: any) => t.appointmentId === appointment.id);
-                                return treatment ? formatCurrency(treatment.cost || 0, treatment.currency || 'EUR') : formatCurrency(0, 'EUR');
-                              })()}
-                            </p>
-                            <p className="text-xs text-muted-foreground">{t.fee}</p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <Calendar className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
-                    <p className="text-muted-foreground">No appointments found</p>
-                    <p className="text-xs text-muted-foreground">Schedule an appointment to get started</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
 
-            {/* Financial Management */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <FinancialOverview patientId={patientId} />
-              <TransactionHistory patientId={patientId} />
-            </div>
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Patient Profile Card */}
-            <Card>
-              <CardContent className="p-6 text-center">
-                <PatientAvatar 
-                  patient={patient} 
-                  size="xl" 
-                  className="mx-auto mb-4 border-2 border-white dark:border-gray-800 shadow-lg"
-                />
-                <h3 className="font-semibold text-lg text-gray-900 dark:text-gray-100">
-                  {patient.firstName} {patient.lastName}
-                </h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
-                  Patient ID: #{patient.id}
-                </p>
-                <Badge className="status-badge status-active">Active Patient</Badge>
-              </CardContent>
-            </Card>
-
-            {/* Quick Stats */}
+          {/* Sidebar - Quick Stats */}
+          <div>
             <Card>
               <CardHeader>
-                <CardTitle>{t.quickStats}</CardTitle>
+                <CardTitle>Quick Stats</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">{t.totalAppointments}</span>
+                    <span className="text-sm text-muted-foreground">Total Appointments</span>
                     <span className="text-sm font-medium">{appointmentsData?.totalCount || 0}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">{t.completedTreatments}</span>
+                    <span className="text-sm text-muted-foreground">Completed</span>
                     <span className="text-sm font-medium">
                       {appointmentsData?.items?.filter(a => a.status === 'completed').length || 0}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">{t.filesUploaded}</span>
+                    <span className="text-sm text-muted-foreground">Files Uploaded</span>
                     <span className="text-sm font-medium">{files?.length || 0}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">{t.lastVisit}</span>
+                    <span className="text-sm text-muted-foreground">Patient Since</span>
                     <span className="text-sm font-medium">
-                      {appointmentsData?.items?.[0] ? 
-                        format(new Date(appointmentsData.items[0].appointmentDate), 'MMM dd, yyyy') :
-                        'No visits'
-                      }
+                      {patient.createdAt ? format(new Date(patient.createdAt), 'MMM yyyy') : 'N/A'}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">{t.patientSince}</span>
-                    <span className="text-sm font-medium">
-                      {format(new Date(patient.createdAt), 'MMM dd, yyyy')}
-                    </span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Financial Summary Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Financial Summary</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-4">
-                  <p className="text-sm text-gray-500">
-                    {t.financialTransactionsSummary}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Quick Actions */}
-            <Card>
-              <CardHeader>
-                <CardTitle>{t.quickActions}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <Button 
-                    variant="outline" 
-                    className="w-full justify-start" 
-                    size="sm"
-                    onClick={() => setAppointmentModalOpen(true)}
-                  >
-                    <Calendar className="h-4 w-4 mr-2" />
-                    Schedule Appointment
-                  </Button>
-                  <Button variant="outline" className="w-full justify-start" size="sm">
-                    <FileText className="h-4 w-4 mr-2" />
-                    {t.addMedicalNote}
-                  </Button>
-                  <Button variant="outline" className="w-full justify-start" size="sm">
-                    <Mail className="h-4 w-4 mr-2" />
-                    {t.sendMessage}
-                  </Button>
                 </div>
               </CardContent>
             </Card>
           </div>
         </div>
 
-        {/* Odontogram Section */}
-        <div className="space-y-6">
-          <OdontogramISO patientId={patientId} patientAge={patientAge} />
-        </div>
+        {/* Medical Records Tabs */}
+        <Tabs defaultValue="appointments" className="w-full">
+          <TabsList className="grid w-full grid-cols-6">
+            <TabsTrigger value="appointments">Appointments</TabsTrigger>
+            <TabsTrigger value="financial">Financial</TabsTrigger>
+            <TabsTrigger value="odontogram">Odontogram</TabsTrigger>
+            <TabsTrigger value="notes">Medical Notes</TabsTrigger>
+            <TabsTrigger value="treatments">Treatments</TabsTrigger>
+            <TabsTrigger value="files">Files</TabsTrigger>
+          </TabsList>
 
-        {/* Medical Notes and Treatment History */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <MedicalNotes patientId={patientId} />
-          <TreatmentHistoryPanel patientId={patientId} />
-        </div>
+          <TabsContent value="appointments" className="space-y-4">
+            {appointmentsData?.items && appointmentsData.items.length > 0 ? (
+              <div className="space-y-4">
+                {appointmentsData.items.map((appointment) => (
+                  <Card key={appointment.id}>
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2 mb-1">
+                            <h4 className="text-sm font-semibold">
+                              {appointment.description || 'Dental Cleaning'}
+                            </h4>
+                            <Badge variant="outline" className="text-xs">
+                              {appointment.status}
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            {format(new Date(appointment.appointmentDate), 'EEEE, MMMM dd, yyyy \'at\' h:mm a')} 
+                            <span className="mx-1">•</span>
+                            Duration: {appointment.duration} min
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-medium text-green-600">
+                            {formatCurrency(appointment.cost || 0, (appointment.currency as any) || 'EUR')}
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <Calendar className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
+                <p className="text-muted-foreground">No appointments found</p>
+              </div>
+            )}
+          </TabsContent>
 
-        {/* Files and Photos Section */}
-        <div className="space-y-6">
-          <Tabs defaultValue="files" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="files">Patient Files</TabsTrigger>
-              <TabsTrigger value="photos">Clinical Photos</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="files" className="space-y-6">
-              <FileUpload patientId={patientId} />
-              <FileList patientId={patientId} />
-            </TabsContent>
-            
-            <TabsContent value="photos">
-              <ClinicalPhotoTimeline patientId={patientId} />
-            </TabsContent>
-          </Tabs>
-        </div>
+          <TabsContent value="financial">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <FinancialOverview patientId={patientId} />
+              <TransactionHistory patientId={patientId} />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="odontogram">
+            <OdontogramISO patientId={patientId} patientAge={patientAge} />
+          </TabsContent>
+
+          <TabsContent value="notes">
+            <MedicalNotes patientId={patientId} />
+          </TabsContent>
+
+          <TabsContent value="treatments">
+            <TreatmentHistoryPanel patientId={patientId} />
+          </TabsContent>
+
+          <TabsContent value="files">
+            <div className="space-y-6">
+              <Tabs defaultValue="upload">
+                <TabsList>
+                  <TabsTrigger value="upload">Upload Files</TabsTrigger>
+                  <TabsTrigger value="list">File List</TabsTrigger>
+                  <TabsTrigger value="photos">Clinical Photos</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="upload">
+                  <FileUpload patientId={patientId} />
+                </TabsContent>
+                
+                <TabsContent value="list">
+                  <FileList patientId={patientId} />
+                </TabsContent>
+                
+                <TabsContent value="photos">
+                  <ClinicalPhotoTimeline patientId={patientId} />
+                </TabsContent>
+              </Tabs>
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
 
 

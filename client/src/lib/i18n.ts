@@ -31,6 +31,8 @@ export interface Translations {
   phone: string;
   email: string;
   address: string;
+  status: string;
+  active: string;
   
   // Appointments
   appointmentScheduled: string;
@@ -62,10 +64,15 @@ export interface Translations {
   
   // Odontogram
   odontogram: string;
+  adultTeeth: string;
+  primaryTeeth: string;
+  upperJaw: string;
+  lowerJaw: string;
   maxilla: string;
   mandible: string;
   right: string;
   left: string;
+  legend: string;
   
   // Tooth Conditions
   healthy: string;
@@ -85,6 +92,7 @@ export interface Translations {
   
   // Medical
   medicalNotes: string;
+  addMedicalNote: string;
   title: string;
   content: string;
   noteType: string;
@@ -97,6 +105,7 @@ export interface Translations {
   
   // Quick Actions
   quickActions: string;
+  addMedicalNote: string;
   sendMessage: string;
   
   // Stats
@@ -118,77 +127,6 @@ export interface Translations {
   teethWhitening: string;
   periodontalTreatment: string;
   emergencyTreatment: string;
-  
-  // Financial specific translations
-  transactionHistory: string;
-  noTransactionsRecorded: string;
-  financialTransactionsSummary: string;
-  addCharge: string;
-  currentBalance: string;
-  totalCharges: string;
-  totalPayments: string;
-  totalRefunds: string;
-  lastTransaction: string;
-  
-  // Common UI elements
-  close: string;
-  noResultsFound: string;
-  services: string;
-  dentalCare: string;
-  
-  // Odontogram specific
-  affectedSurfaces: string;
-  condition: string;
-  
-  // Medical Records
-  noMedicalNotesAvailable: string;
-  noAppointmentsAvailable: string;
-  noTreatmentHistoryYet: string;
-  noFilesFound: string;
-  
-  // General status messages
-  noDataAvailable: string;
-  loadMore: string;
-  viewDetails: string;
-  editPatient: string;
-  
-  // Dashboard specific
-  recentPatients: string;
-  addPatient: string;
-  viewAll: string;
-  todaysAppointments: string;
-  totalPatients: string;
-  activePatients: string;
-  inactivePatients: string;
-  newPatientsThisMonth: string;
-  averageAge: string;
-  ageDistribution: string;
-  children: string;
-  adults: string;
-  seniors: string;
-  
-  // Patient status
-  active: string;
-  inactive: string;
-  atRisk: string;
-  
-  // Table headers
-  name: string;
-  age: string;
-  contact: string;
-  patientStatus: string;
-  actions: string;
-  
-  // Additional odontogram terms
-  legend: string;
-  upperJaw: string;
-  lowerJaw: string;
-  adultTeeth: string;
-  primaryTeeth: string;
-  
-  // Medical record buttons
-  addMedicalNote: string;
-  addTreatment: string;
 }
 
 const englishTranslations: Translations = {
@@ -234,15 +172,13 @@ const englishTranslations: Translations = {
   
   // Treatment
   treatmentHistory: "Treatment History",
-  addTreatment: "Add Treatment", 
+  addTreatment: "Add Treatment",
   treatmentType: "Treatment Type",
   description: "Description",
   toothNumbers: "Tooth Numbers",
   cost: "Cost",
   notes: "Notes",
   treatmentNotes: "Treatment Notes",
-  noTreatmentHistoryYet: "No treatment history yet",
-  clickAddTreatmentToRecord: "Click \"Add Treatment\" to record the first treatment",
   
   // Financial
   financialOverview: "Financial Overview",
@@ -256,15 +192,15 @@ const englishTranslations: Translations = {
   
   // Odontogram
   odontogram: "Odontogram",
+  adultTeeth: "Adult Teeth",
+  primaryTeeth: "Primary Teeth",
   upperJaw: "Upper Jaw",
-  lowerJaw: "Lower Jaw", 
+  lowerJaw: "Lower Jaw",
   maxilla: "Maxilla",
   mandible: "Mandible",
   right: "Right",
   left: "Left",
   legend: "Legend",
-  adultTeeth: "Adult Teeth",
-  primaryTeeth: "Primary Teeth",
   
   // Tooth Conditions
   healthy: "Healthy",
@@ -288,32 +224,12 @@ const englishTranslations: Translations = {
   title: "Title",
   content: "Content",
   noteType: "Note Type",
-  noMedicalNotesYet: "No medical notes yet",
-  clickAddNoteToCreateFirst: "Click \"Add Note\" to create the first medical note",
   
   // Files
   files: "Files",
   uploadFiles: "Upload Files",
   chooseFiles: "Choose Files",
   dragAndDrop: "Drag and drop files here, or click to browse",
-  patientFiles: "Patient Files",
-  clinicalPhotos: "Clinical Photos",
-  uploadPatientFiles: "Upload Patient Files",
-  fileType: "File Type",
-  xrayImages: "X-Ray Images",
-  threeDModels: "3D Models & Scans",
-  documentsReports: "Documents & Reports",
-  noFileChosen: "No file chosen",
-  dropClinicalPhotosHere: "Drop Clinical Photos here",
-  searchFiles: "Search files, descriptions, or tags...",
-  noFilesFound: "No files found",
-  uploadFilesToGetStarted: "Upload files to get started",
-  date: "Date",
-  all: "All",
-  xray: "X-Ray",
-  clinical: "Clinical",
-  threeD: "3D",
-  documents: "Documents",
   
   // Quick Actions
   quickActions: "Quick Actions",
@@ -342,68 +258,6 @@ const englishTranslations: Translations = {
   // Page Titles
   patientManagement: "Patient Management",
   patientManagementDesc: "Manage patient records, appointments, and medical history",
-  
-  // Financial specific translations
-  transactionHistory: "Transaction History",
-  noTransactionsRecorded: "No transactions recorded",
-  financialTransactionsSummary: "Financial transactions and balance summary",
-  addCharge: "Add Charge",
-  currentBalance: "Current Balance",
-  totalCharges: "Total Charges",
-  totalPayments: "Total Payments",
-  totalRefunds: "Total Refunds",
-  lastTransaction: "Last Transaction",
-  
-  // Common UI elements
-  close: "Close",
-  noResultsFound: "No results found",
-  services: "Services",
-  dentalCare: "DentalCare",
-  
-  // Odontogram specific
-  affectedSurfaces: "Affected Surfaces",
-  condition: "Condition",
-  
-  // Medical Records
-  noMedicalNotesAvailable: "No medical notes available",
-  noAppointmentsAvailable: "No appointments available",
-  noTreatmentHistoryYet: "No treatment history yet",
-  noFilesFound: "No files found",
-  
-  // General status messages
-  noDataAvailable: "No data available",
-  loadMore: "Load More",
-  viewDetails: "View Details",
-  editPatient: "Edit Patient",
-  
-  // Dashboard specific
-  recentPatients: "Recent Patients",
-  addPatient: "Add Patient",
-  viewAll: "View All",
-  todaysAppointments: "Today's Appointments",
-  totalPatients: "Total Patients",
-  activePatients: "Active Patients",
-  inactivePatients: "Inactive Patients",
-  newPatientsThisMonth: "New Patients This Month",
-  averageAge: "Average Age",
-  ageDistribution: "Age Distribution",
-  children: "Children",
-  adults: "Adults",
-  seniors: "Seniors",
-  
-  // Patient status
-  active: "Active",
-  inactive: "Inactive",
-  atRisk: "At Risk",
-  
-  // Table headers
-  name: "Name",
-  age: "Age",
-  contact: "Contact",
-  patientStatus: "Status",
-  actions: "Actions",
-  
-
 };
 
 const serbianTranslations: Translations = {
@@ -450,14 +304,12 @@ const serbianTranslations: Translations = {
   // Treatment
   treatmentHistory: "Istorija lečenja",
   addTreatment: "Dodaj tretman",
-  treatmentType: "Tip tretmana", 
+  treatmentType: "Tip tretmana",
   description: "Opis",
   toothNumbers: "Brojevi zuba",
   cost: "Cena",
   notes: "Napomene",
   treatmentNotes: "Napomene o tretmanu",
-  noTreatmentHistoryYet: "Još nema istorije lečenja",
-  clickAddTreatmentToRecord: "Kliknite \"Dodaj tretman\" da evidentirate prvi tretman",
   
   // Financial
   financialOverview: "Finansijski pregled",
@@ -503,32 +355,12 @@ const serbianTranslations: Translations = {
   title: "Naslov",
   content: "Sadržaj",
   noteType: "Tip napomene",
-  noMedicalNotesYet: "Još nema medicinskih napomena",
-  clickAddNoteToCreateFirst: "Kliknite \"Dodaj napomenu\" da kreirate prvu medicinsku napomenu",
   
   // Files
   files: "Fajlovi",
   uploadFiles: "Otpremi fajlove",
   chooseFiles: "Izaberi fajlove",
   dragAndDrop: "Prevuci i spusti fajlove ovde, ili klikni za pretraživanje",
-  patientFiles: "Fajlovi pacijenta",
-  clinicalPhotos: "Klinički snimci",
-  uploadPatientFiles: "Otpremi fajlove pacijenta",
-  fileType: "Tip fajla",
-  xrayImages: "Rentgenski snimci",
-  threeDModels: "3D modeli i skenovi",
-  documentsReports: "Dokumenti i izveštaji",
-  noFileChosen: "Nije izabran fajl",
-  dropClinicalPhotosHere: "Spusti kliničke snimke ovde",
-  searchFiles: "Pretraži fajlove, opise ili tagove...",
-  noFilesFound: "Nije pronađen nijedan fajl",
-  uploadFilesToGetStarted: "Otpremi fajlove da počneš",
-  date: "Datum",
-  all: "Svi",
-  xray: "Rentgen",
-  clinical: "Klinički",
-  threeD: "3D",
-  documents: "Dokumenti",
   
   // Quick Actions
   quickActions: "Brze akcije",
@@ -557,68 +389,6 @@ const serbianTranslations: Translations = {
   // Page Titles
   patientManagement: "Upravljanje pacijentima",
   patientManagementDesc: "Upravljajte kartonima pacijenata, terminima i medicinskom istorijom",
-  
-  // Financial specific translations
-  transactionHistory: "Istorija transakcija",
-  noTransactionsRecorded: "Nema evidentirane transakcije",
-  financialTransactionsSummary: "Pregled finansijskih transakcija i balansa",
-  addCharge: "Dodaj naknadu",
-  currentBalance: "Trenutni balans",
-  totalCharges: "Ukupne naknade",
-  totalPayments: "Ukupna plaćanja",
-  totalRefunds: "Ukupni povraćaji",
-  lastTransaction: "Poslednja transakcija",
-  
-  // Common UI elements
-  close: "Zatvori",
-  noResultsFound: "Nema rezultata",
-  services: "Usluge",
-  dentalCare: "DentalCare",
-  
-  // Odontogram specific
-  affectedSurfaces: "Zahvaćene površine",
-  condition: "Stanje",
-  
-  // Medical Records
-  noMedicalNotesAvailable: "Nema dostupnih medicinskih napomena",
-  noAppointmentsAvailable: "Nema dostupnih termina",
-  noTreatmentHistoryYet: "Još nema istorije lečenja",
-  noFilesFound: "Nema pronađenih fajlova",
-  
-  // General status messages
-  noDataAvailable: "Nema dostupnih podataka",
-  loadMore: "Učitaj više",
-  viewDetails: "Prikaži detalje",
-  editPatient: "Uredi pacijenta",
-  
-  // Dashboard specific
-  recentPatients: "Poslednji pacijenti",
-  addPatient: "Dodaj pacijenta",
-  viewAll: "Prikaži sve",
-  todaysAppointments: "Današnji termini",
-  totalPatients: "Ukupno pacijenata",
-  activePatients: "Aktivni pacijenti",
-  inactivePatients: "Neaktivni pacijenti",
-  newPatientsThisMonth: "Novi pacijenti ovog meseca",
-  averageAge: "Prosečne godine",
-  ageDistribution: "Raspored godina",
-  children: "Deca",
-  adults: "Odrasli",
-  seniors: "Stariji",
-  
-  // Patient status
-  active: "Aktivan",
-  inactive: "Neaktivan",
-  atRisk: "U riziku",
-  
-  // Table headers
-  name: "Ime",
-  age: "Godine",
-  contact: "Kontakt",
-  patientStatus: "Status",
-  actions: "Akcije",
-  
-
 };
 
 export const translations = {

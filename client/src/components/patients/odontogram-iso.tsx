@@ -23,7 +23,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { usePatientToothRecords, useCreateToothRecord, useUpdateToothRecord } from "@/hooks/use-tooth-records";
 import { useCreateTreatmentHistory } from "@/hooks/use-treatment-history";
-import { useTranslation } from "@/lib/i18n";
 import { useToast } from "@/hooks/use-toast";
 import type { ToothRecord, InsertToothRecord } from "@shared/schema";
 import { Loader2, Plus } from "lucide-react";
@@ -57,7 +56,7 @@ const CHILDREN_TEETH_ISO = {
 };
 
 const CONDITION_COLORS = {
-  healthy: "#f8f9fa",
+  healthy: "#ffffff",
   caries: "#ff4444",
   filled: "#4444ff", 
   crown: "#ffaa00",
@@ -87,12 +86,12 @@ const TOOTH_SURFACES = {
 } as const;
 
 const SURFACE_POSITIONS = {
-  M: { x: 18, y: 40 },
-  D: { x: 102, y: 40 },
-  O: { x: 60, y: 24 },
-  I: { x: 60, y: 24 },
-  L: { x: 60, y: 12 },
-  B: { x: 60, y: 68 },
+  M: { x: "18", y: "40" },    // Left side (Mesial)
+  D: { x: "102", y: "40" },   // Right side (Distal) 
+  O: { x: "60", y: "25" },    // Top (Occlusal)
+  I: { x: "60", y: "25" },    // Top (Incisal)
+  L: { x: "60", y: "12" },    // Very top (Lingual/Palatal)
+  B: { x: "60", y: "68" },    // Bottom (Buccal/Labial)
 } as const;
 
 const CONDITION_NAMES = {
@@ -127,22 +126,19 @@ function Tooth({ toothNumber, record, onUpdate, isChild = false }: ToothProps) {
   return (
     <button
       onClick={() => onUpdate(toothNumber, record)}
-      className={`relative border-2 border-gray-400 dark:border-gray-600 rounded-t-lg hover:ring-2 hover:ring-blue-500 transition-all shadow-sm ${
+      className={`relative border border-gray-300 rounded-t-lg hover:ring-2 hover:ring-blue-500 transition-all ${
         isChild ? 'w-6 h-8' : 'w-8 h-10'
       }`}
-      style={{ 
-        backgroundColor: color,
-        boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.1)'
-      }}
+      style={{ backgroundColor: color }}
       title={`Tooth ${toothNumber}${record ? ` - ${CONDITION_NAMES[condition as keyof typeof CONDITION_NAMES]}` : ""}${surfaces.length > 0 ? ` (${surfaces.join(', ')})` : ""}`}
     >
-      <span className={`absolute inset-0 flex items-center justify-center font-bold text-gray-900 ${
+      <span className={`absolute inset-0 flex items-center justify-center font-medium text-gray-800 ${
         isChild ? 'text-xs' : 'text-xs'
-      }`} style={{ textShadow: '0 1px 1px rgba(255,255,255,0.8)' }}>
+      }`}>
         {toothNumber}
       </span>
       
-      {/* Surface notation indicators - made smaller and less intrusive */}
+      {/* Surface notation indicators */}
       {surfaces.length > 0 && (
         <div className="absolute inset-0 pointer-events-none">
           {surfaces.map(surface => {
@@ -151,7 +147,7 @@ function Tooth({ toothNumber, record, onUpdate, isChild = false }: ToothProps) {
             return (
               <div
                 key={surface}
-                className="absolute w-0.5 h-0.5 bg-red-600 dark:bg-red-400 rounded-full opacity-70"
+                className="absolute w-1 h-1 bg-red-500 rounded-full"
                 style={{
                   left: pos.x,
                   top: pos.y,
@@ -164,7 +160,7 @@ function Tooth({ toothNumber, record, onUpdate, isChild = false }: ToothProps) {
       )}
       
       {record && (
-        <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-600 rounded-full border border-white shadow-sm"></div>
+        <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-600 rounded-full"></div>
       )}
     </button>
   );
@@ -370,9 +366,9 @@ function ToothDialog({ toothNumber, record, patientId, isOpen, onClose }: ToothD
             <div className="mt-2">
               {/* Visual tooth surface selector */}
               <div className="relative mx-auto mb-4" style={{ width: "120px", height: "80px" }}>
-                <svg viewBox="0 0 120 80" className="w-full h-full border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800">
+                <svg viewBox="0 0 120 80" className="w-full h-full border border-gray-300 rounded bg-white">
                   {/* Tooth shape */}
-                  <rect x="30" y="20" width="60" height="40" rx="8" fill="#f8f9fa" stroke="#dee2e6" strokeWidth="1" className="dark:fill-gray-800 dark:stroke-gray-400"/>
+                  <rect x="30" y="20" width="60" height="40" rx="8" fill="#f8f9fa" stroke="#dee2e6" strokeWidth="1"/>
                   
                   {/* Surface markers */}
                   {Object.entries(SURFACE_POSITIONS).map(([surface, pos]) => {
@@ -384,8 +380,8 @@ function ToothDialog({ toothNumber, record, patientId, isOpen, onClose }: ToothD
                     return (
                       <g key={surface}>
                         <circle
-                          cx={pos.x}
-                          cy={pos.y}
+                          cx={parseFloat(pos.x)}
+                          cy={parseFloat(pos.y)}
                           r="8"
                           fill={isSelected ? "#3b82f6" : "#e5e7eb"}
                           stroke={isSelected ? "#1d4ed8" : "#9ca3af"}
@@ -394,8 +390,8 @@ function ToothDialog({ toothNumber, record, patientId, isOpen, onClose }: ToothD
                           onClick={() => toggleSurface(surface)}
                         />
                         <text
-                          x={pos.x}
-                          y={pos.y + 2}
+                          x={parseFloat(pos.x)}
+                          y={parseFloat(pos.y) + 2}
                           textAnchor="middle"
                           fontSize="8"
                           fill={isSelected ? "white" : "#374151"}
@@ -533,7 +529,6 @@ function ToothDialog({ toothNumber, record, patientId, isOpen, onClose }: ToothD
 }
 
 export function OdontogramISO({ patientId, patientAge }: OdontogramISOProps) {
-  const { t } = useTranslation();
   const [selectedTooth, setSelectedTooth] = useState<{ number: number; record?: ToothRecord } | null>(null);
   const [activeTab, setActiveTab] = useState("adult");
   
@@ -610,14 +605,14 @@ export function OdontogramISO({ patientId, patientAge }: OdontogramISOProps) {
         <CardContent>
           <Tabs value={activeTab} onValueChange={setActiveTab} defaultValue={defaultTab}>
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="adult">{t.adultTeeth}</TabsTrigger>
-              <TabsTrigger value="child">{t.primaryTeeth}</TabsTrigger>
+              <TabsTrigger value="adult">Adult Teeth</TabsTrigger>
+              <TabsTrigger value="child">Primary Teeth</TabsTrigger>
             </TabsList>
             
             <TabsContent value="adult" className="space-y-6 mt-6">
               {/* Adult Upper Jaw - FDI Layout */}
               <div>
-                <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-4">{t.upperJaw} ({t.maxilla})</h3>
+                <h3 className="text-sm font-medium text-gray-600 mb-4">Upper Jaw (Maxilla)</h3>
                 <div className="flex justify-center items-center gap-2">
                   <div className="text-right">
                     <p className="text-xs text-gray-400 mb-1">Right Upper</p>
@@ -633,7 +628,7 @@ export function OdontogramISO({ patientId, patientAge }: OdontogramISOProps) {
               
               {/* Adult Lower Jaw - FDI Layout */}
               <div>
-                <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-4">{t.lowerJaw} ({t.mandible})</h3>
+                <h3 className="text-sm font-medium text-gray-600 mb-4">Lower Jaw (Mandible)</h3>
                 <div className="flex justify-center items-center gap-2">
                   <div className="text-right">
                     <p className="text-xs text-gray-400 mb-1">Right Lower</p>
@@ -651,7 +646,7 @@ export function OdontogramISO({ patientId, patientAge }: OdontogramISOProps) {
             <TabsContent value="child" className="space-y-6 mt-6">
               {/* Child Upper Jaw - FDI Layout */}
               <div>
-                <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-4">{t.upperJaw} ({t.maxilla})</h3>
+                <h3 className="text-sm font-medium text-gray-600 mb-4">Upper Jaw (Maxilla)</h3>
                 <div className="flex justify-center items-center gap-2">
                   <div className="text-right">
                     <p className="text-xs text-gray-400 mb-1">Right Upper</p>
@@ -667,7 +662,7 @@ export function OdontogramISO({ patientId, patientAge }: OdontogramISOProps) {
               
               {/* Child Lower Jaw - FDI Layout */}
               <div>
-                <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-4">{t.lowerJaw} ({t.mandible})</h3>
+                <h3 className="text-sm font-medium text-gray-600 mb-4">Lower Jaw (Mandible)</h3>
                 <div className="flex justify-center items-center gap-2">
                   <div className="text-right">
                     <p className="text-xs text-gray-400 mb-1">Right Lower</p>
@@ -685,15 +680,15 @@ export function OdontogramISO({ patientId, patientAge }: OdontogramISOProps) {
           
           {/* Legend */}
           <div className="mt-6 pt-4 border-t">
-            <h4 className="text-sm font-medium text-gray-600 mb-2">{t.legend}</h4>
+            <h4 className="text-sm font-medium text-gray-600 mb-2">Legend</h4>
             <div className="grid grid-cols-3 gap-2 text-xs">
               {Object.entries(CONDITION_NAMES).map(([key, name]) => (
                 <div key={key} className="flex items-center gap-2">
                   <div 
-                    className="w-3 h-3 rounded border border-gray-300 dark:border-gray-600"
+                    className="w-3 h-3 rounded border border-gray-300"
                     style={{ backgroundColor: CONDITION_COLORS[key as keyof typeof CONDITION_COLORS] }}
                   />
-                  <span className="text-gray-700 dark:text-gray-300">{t[key as keyof typeof t] || name}</span>
+                  <span>{name}</span>
                 </div>
               ))}
             </div>
