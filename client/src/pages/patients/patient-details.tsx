@@ -16,6 +16,7 @@ import { usePatient } from "@/hooks/use-patients";
 import { usePatientFiles } from "@/hooks/use-files";
 import { useAppointments } from "@/hooks/use-appointments";
 import { useTreatmentHistory } from "@/hooks/use-treatment-history";
+import { useQuery } from "@tanstack/react-query";
 
 import { useTranslation } from "@/lib/i18n";
 import { formatCurrency } from "@/lib/currency";
@@ -38,6 +39,11 @@ export default function PatientDetailsPage() {
   const { data: appointmentsData } = useAppointments({ patientId });
   const { data: treatments } = useTreatmentHistory(patientId);
   const treatmentsArray = Array.isArray(treatments) ? treatments : [];
+  
+  const { data: medicalConditions = [] } = useQuery<string[]>({
+    queryKey: ['/api/patients', patientId, 'medical-conditions'],
+    enabled: !!patientId,
+  });
 
   // Calculate patient age for odontogram
   const patientAge = patient ? new Date().getFullYear() - new Date(patient.dateOfBirth).getFullYear() : 25;
@@ -152,19 +158,34 @@ export default function PatientDetailsPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">{patient.phone}</span>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="flex items-center gap-2">
+                      <Phone className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">{patient.phone}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">{patient.email || 'No email'}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">{patient.address || 'No address'}</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">{patient.email || 'No email'}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">{patient.address || 'No address'}</span>
-                  </div>
+                  
+                  {medicalConditions && medicalConditions.length > 0 && (
+                    <div className="border-t pt-4">
+                      <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">Medical Conditions</h3>
+                      <div className="flex flex-wrap gap-2">
+                        {medicalConditions.map((condition) => (
+                          <Badge key={condition} variant="secondary" className="px-3 py-1">
+                            {condition}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
